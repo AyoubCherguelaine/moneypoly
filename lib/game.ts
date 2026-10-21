@@ -111,14 +111,14 @@ export function createGame(
   settings: GameSettings = DEFAULT_SETTINGS,
 ): Game {
   if (names.length < 2 || names.length > 6)
-    throw new Error("Choose 2–6 players.");
+    throw new Error("اختر من 2 إلى 6 لاعبين.");
   return {
     version: 1,
     settings: { ...settings },
     parkingPot: 0,
     players: names.map((name, id) => ({
       id,
-      name: name.trim() || `Player ${id + 1}`,
+      name: name.trim() || `لاعب ${id + 1}`,
       money: settings.startingCash,
       position: 0,
       jailed: false,
@@ -139,7 +139,7 @@ export function createGame(
     logs: [
       {
         id: 0,
-        text: `Welcome to Manypoly. Your journey starts with ${settings.startingCash.toLocaleString("en-US")} DH each.`,
+        text: `مرحباً بكم في Moneypoly. تبدأ رحلة كل لاعب بـ ${money(settings.startingCash)}.`,
       },
     ],
     serial: 1,
@@ -149,6 +149,11 @@ export function createGame(
     trade: null,
   };
 }
+const JAIL_RELEASE = "الخروج الإلزامي من السجن";
+/** Log line the board reads back to replay where the dice put a pin. */
+export const arrivedIn = (name: string, s: Space) =>
+  `${name} وصل إلى ${s.name}.`;
+export const wentToJail = (name: string) => `${name} دخل السجن.`;
 function log(g: Game, text: string) {
   g.logs.unshift({ id: g.serial++, text });
   g.logs = g.logs.slice(0, 60);
@@ -198,7 +203,7 @@ function processPayments(g: Game) {
       g.debt = p;
       log(
         g,
-        `${g.players[p.from].name} needs ${p.amount} DH for ${p.reason}. Sell buildings, mortgage, or trade to raise funds.`,
+        `${g.players[p.from].name} يحتاج ${money(p.amount)} مقابل ${p.reason}. بِع مباني أو ارهن أو بادل لجمع المال.`,
       );
       return;
     }
@@ -207,7 +212,7 @@ function processPayments(g: Game) {
     if (p.pot) g.parkingPot = (g.parkingPot ?? 0) + p.amount;
     log(
       g,
-      `${g.players[p.from].name} paid ${p.amount} DH ${p.to === null ? "to the bank" : `to ${g.players[p.to].name}`} · ${p.reason}.`,
+      `${g.players[p.from].name} دفع ${money(p.amount)} ${p.to === null ? "للبنك" : `إلى ${g.players[p.to].name}`} · ${p.reason}.`,
     );
   }
   g.debt = null;
@@ -232,7 +237,7 @@ function jail(g: Game) {
   p.jailTurns = 0;
   g.extraRoll = false;
   g.doubles = 0;
-  log(g, `${p.name} went to jail.`);
+  log(g, wentToJail(p.name));
 }
 function move(
   g: Game,
@@ -245,7 +250,7 @@ function move(
   if (collect && target < p.position) {
     const salary = (g.settings ?? DEFAULT_SETTINGS).startSalary;
     p.money += salary;
-    log(g, `${p.name} passed Start and collected ${salary} DH.`);
+    log(g, `${p.name} مرّ بالبداية وحصل على ${money(salary)}.`);
   }
   p.position = target;
   land(g, special, utilityDice);
@@ -257,18 +262,14 @@ function draw(g: Game, deck: "chance" | "community") {
     ? {
         ...c,
         text: c.text.replaceAll(
-          "200 dirhams",
-          `${(g.settings ?? DEFAULT_SETTINGS).startSalary} dirhams`,
-        ),
-        arabicText: c.arabicText.replaceAll(
           "200 درهم",
-          `${money((g.settings ?? DEFAULT_SETTINGS).startSalary)}`,
+          money((g.settings ?? DEFAULT_SETTINGS).startSalary),
         ),
       }
     : c;
   if (c.effect !== "escape") g[deck].push(id);
   const p = g.players[g.current];
-  log(g, `${p.name} drew “${c.title}”.`);
+  log(g, `${p.name} سحب بطاقة «${c.title}».`);
   switch (c.effect) {
     case "money":
       if (c.amount! > 0) {
@@ -296,7 +297,7 @@ function draw(g: Game, deck: "chance" | "community") {
       const n = [12, 28].find((i) => i > p.position) ?? 12;
       const utilityDice = g.utilityDice ?? g.dice;
       const r = utilityDice[0] + utilityDice[1];
-      log(g, `Utility card dice: ${r}.`);
+      log(g, `نرد بطاقة الخدمات: ${r}.`);
       move(g, n, true, true, r);
       break;
     }
@@ -332,7 +333,7 @@ function draw(g: Game, deck: "chance" | "community") {
 function land(g: Game, special = false, utilityDice?: number) {
   const p = g.players[g.current],
     s = BOARD[p.position];
-  log(g, `${p.name} arrived in ${s.name}.`);
+  log(g, arrivedIn(p.name, s));
   if (s.type === "go-jail") {
     jail(g);
     return;
@@ -345,14 +346,14 @@ function land(g: Game, special = false, utilityDice?: number) {
     const settings = g.settings ?? DEFAULT_SETTINGS;
     if (settings.taxes)
       charge(g, p.id, null, s.price!, s.name, settings.freeParkingPot);
-    else log(g, `${s.name} is disabled for this game.`);
+    else log(g, `${s.name} معطّلة في هذه اللعبة.`);
     return;
   }
   if (s.type === "parking" && (g.settings ?? DEFAULT_SETTINGS).freeParkingPot) {
     const pot = g.parkingPot ?? 0;
     p.money += pot;
     g.parkingPot = 0;
-    log(g, `${p.name} collected ${pot} DH from Free Parking.`);
+    log(g, `${p.name} حصل على ${money(pot)} من الاستراحة.`);
     return;
   }
   if (s.price && ["city", "rail", "utility"].includes(s.type)) {
@@ -367,7 +368,7 @@ function land(g: Game, special = false, utilityDice?: number) {
         p.id,
         d.owner,
         rent(g, s, utilityDice ?? g.dice[0] + g.dice[1], special),
-        `rent in ${s.name}`,
+        `إيجار ${s.name}`,
       );
   }
 }
@@ -383,25 +384,24 @@ export function buildingStock(g: Game) {
 }
 export function buildError(g: Game, id: number): string | null {
   if (!(g.settings ?? DEFAULT_SETTINGS).buildings)
-    return "Building is disabled for this game.";
+    return "البناء معطّل في هذه اللعبة.";
   const s = BOARD[id],
     d = g.deeds[id],
     p = g.players[g.current];
-  if (!d || d.owner !== p.id || s.type !== "city")
-    return "Choose one of your cities.";
+  if (!d || d.owner !== p.id || s.type !== "city") return "اختر مدينة من مدنك.";
   if (g.debt || (g.phase !== "manage" && g.phase !== "roll") || tradeOpen(g))
-    return "Finish the current action first.";
-  if (!ownsGroup(g, p.id, s)) return "Own every city in this color to build.";
+    return "أنهِ الإجراء الحالي أولاً.";
+  if (!ownsGroup(g, p.id, s)) return "امتلك كل مدن هذا اللون لتتمكن من البناء.";
   const group = groupSpaces(s);
   if (group.some((s) => g.deeds[s.id].mortgaged))
-    return "Unmortgage the entire color group first.";
-  if (d.houses === 5) return "This city already has a hotel.";
+    return "افكّ رهن كل مدن هذا اللون أولاً.";
+  if (d.houses === 5) return "في هذه المدينة فندق بالفعل.";
   if (group.some((s) => (g.deeds[s.id]?.houses ?? 0) < d.houses))
-    return "Build evenly across the color group.";
-  if (p.money < s.build!) return "Not enough dirhams.";
+    return "ابنِ بالتساوي على مدن هذا اللون.";
+  if (p.money < s.build!) return "لا تملك ما يكفي من الدراهم.";
   const stock = buildingStock(g);
   if (d.houses === 4 ? stock.hotels < 1 : stock.houses < 1)
-    return "The bank has no buildings of this type left.";
+    return "نفدت مباني هذا النوع من البنك.";
   return null;
 }
 function sellError(g: Game, id: number, owner: number) {
@@ -420,7 +420,7 @@ function next(g: Game) {
   g.doubles = 0;
   g.extraRoll = false;
   g.card = null;
-  log(g, `${g.players[g.current].name}’s turn.`);
+  log(g, `دور ${g.players[g.current].name}.`);
 }
 function finishAuction(g: Game) {
   const a = g.auction!;
@@ -429,9 +429,9 @@ function finishAuction(g: Game) {
     g.deeds[a.space] = { owner: a.leader, houses: 0, mortgaged: false };
     log(
       g,
-      `${g.players[a.leader].name} won ${BOARD[a.space].name} for ${a.bid} DH.`,
+      `${g.players[a.leader].name} فاز بـ ${BOARD[a.space].name} مقابل ${money(a.bid)}.`,
     );
-  } else log(g, `${BOARD[a.space].name} stayed with the bank.`);
+  } else log(g, `${BOARD[a.space].name} بقيت لدى البنك.`);
   g.auction = null;
   g.phase = "manage";
 }
@@ -510,14 +510,14 @@ export function gameReducer(state: Game, action: Action): Game {
       g.phase = "manage";
       const [a, b] = action.dice;
       let extra = a === b;
-      log(g, `${p.name} rolled ${a} + ${b}${extra ? " · doubles!" : ""}.`);
+      log(g, `${p.name} رمى ${a} و ${b}${extra ? " · زوج!" : ""}.`);
       if (p.jailed) {
         p.jailTurns++;
         if (extra) {
           p.jailed = false;
           p.jailTurns = 0;
           extra = false;
-          log(g, `${p.name} rolled doubles and left jail.`);
+          log(g, `${p.name} رمى زوجاً وخرج من السجن.`);
         } else if (p.jailTurns >= 3) {
           p.jailed = false;
           p.jailTurns = 0;
@@ -526,7 +526,7 @@ export function gameReducer(state: Game, action: Action): Game {
             p.id,
             null,
             (g.settings ?? DEFAULT_SETTINGS).jailBail,
-            "mandatory jail release",
+            JAIL_RELEASE,
           );
         } else {
           g.extraRoll = false;
@@ -543,10 +543,7 @@ export function gameReducer(state: Game, action: Action): Game {
       if (g.debt) {
         g.phase = "manage";
         g.payments = [];
-        log(
-          g,
-          `After settling bail, move ${a + b} spaces using the “Settle debt” action.`,
-        );
+        log(g, `بعد دفع الكفالة، تقدّم ${a + b} خانات عبر زر «سداد الدين».`);
         return g;
       }
       move(g, (p.position + a + b) % 40);
@@ -558,16 +555,13 @@ export function gameReducer(state: Game, action: Action): Game {
       p.money -= s.price;
       g.deeds[s.id] = { owner: p.id, houses: 0, mortgaged: false };
       g.phase = "manage";
-      log(g, `${p.name} bought ${s.name} for ${s.price} DH.`);
+      log(g, `${p.name} اشترى ${s.name} مقابل ${money(s.price)}.`);
       break;
     }
     case "auction":
       if (g.phase !== "buy") return state;
       if (!(g.settings ?? DEFAULT_SETTINGS).auctions) {
-        log(
-          g,
-          `${BOARD[p.position].name} stayed with the bank. Auctions are disabled.`,
-        );
+        log(g, `${BOARD[p.position].name} بقيت لدى البنك. المزادات معطّلة.`);
         g.phase = "manage";
         break;
       }
@@ -578,7 +572,7 @@ export function gameReducer(state: Game, action: Action): Game {
         leader: null,
         endsAt: action.at + AUCTION_OPEN_MS,
       };
-      log(g, `${BOARD[p.position].name} is up for auction.`);
+      log(g, `${BOARD[p.position].name} معروضة في المزاد.`);
       break;
     case "bid": {
       // Live auction: anyone may outbid at any moment until the countdown ends.
@@ -602,7 +596,7 @@ export function gameReducer(state: Game, action: Action): Game {
       a.bid = amount;
       a.leader = action.player;
       a.endsAt = action.at + AUCTION_BID_MS;
-      log(g, `${bidder.name} bid ${a.bid} DH.`);
+      log(g, `${bidder.name} زايد بـ ${money(a.bid)}.`);
       break;
     }
     case "auction-close":
@@ -629,7 +623,7 @@ export function gameReducer(state: Game, action: Action): Game {
       p.jailTurns = 0;
       log(
         g,
-        `${p.name} paid ${(g.settings ?? DEFAULT_SETTINGS).jailBail} DH to leave jail.`,
+        `${p.name} دفع ${money((g.settings ?? DEFAULT_SETTINGS).jailBail)} للخروج من السجن.`,
       );
       break;
     case "escape":
@@ -639,14 +633,14 @@ export function gameReducer(state: Game, action: Action): Game {
         g[id.startsWith("c") ? "chance" : "community"].push(id);
         p.jailed = false;
         p.jailTurns = 0;
-        log(g, `${p.name} used a Get out of jail free card.`);
+        log(g, `${p.name} استخدم بطاقة الخروج من السجن مجاناً.`);
       }
       break;
     case "build":
       if (buildError(g, action.space)) return state;
       g.deeds[action.space].houses++;
       p.money -= BOARD[action.space].build!;
-      log(g, `${p.name} developed ${BOARD[action.space].name}.`);
+      log(g, `${p.name} بنى في ${BOARD[action.space].name}.`);
       break;
     case "sell": {
       const owner = g.debt?.from ?? g.current;
@@ -656,7 +650,7 @@ export function gameReducer(state: Game, action: Action): Game {
       g.players[owner].money += BOARD[action.space].build! / 2;
       log(
         g,
-        `${g.players[owner].name} sold a building in ${BOARD[action.space].name}.`,
+        `${g.players[owner].name} باع مبنى في ${BOARD[action.space].name}.`,
       );
       break;
     }
@@ -680,7 +674,7 @@ export function gameReducer(state: Game, action: Action): Game {
       }
       log(
         g,
-        `${g.players[owner].name} ${d.mortgaged ? "mortgaged" : "unmortgaged"} ${s.name}.`,
+        `${g.players[owner].name} ${d.mortgaged ? "رهن" : "فكّ رهن"} ${s.name}.`,
       );
       break;
     }
@@ -690,7 +684,7 @@ export function gameReducer(state: Game, action: Action): Game {
       g.debt = null;
       g.payments.unshift(debt);
       processPayments(g);
-      if (debt.reason === "mandatory jail release" && !g.debt)
+      if (debt.reason === JAIL_RELEASE && !g.debt)
         move(g, (p.position + g.dice[0] + g.dice[1]) % 40);
       break;
     }
@@ -722,7 +716,7 @@ export function gameReducer(state: Game, action: Action): Game {
       loser.escape = [];
       log(
         g,
-        `${loser.name} declared bankruptcy${creditor ? ` to ${creditor.name}` : " to the bank"}.`,
+        `${loser.name} أعلن إفلاسه${creditor ? ` لصالح ${creditor.name}` : " لصالح البنك"}.`,
       );
       g.debt = null;
       g.payments = g.payments.filter((payment) => payment.from !== loser.id);
@@ -731,7 +725,7 @@ export function gameReducer(state: Game, action: Action): Game {
         g.phase = "over";
         g.debt = null;
         g.payments = [];
-        log(g, `${g.players.find((p) => !p.bankrupt)!.name} wins Manypoly!`);
+        log(g, `${g.players.find((p) => !p.bankrupt)!.name} يفوز بMoneypoly!`);
       } else if (loser.id === g.current) next(g);
       break;
     }
@@ -754,7 +748,7 @@ export function gameReducer(state: Game, action: Action): Game {
       g.trade.deferred = true;
       log(
         g,
-        `${g.players[g.trade.to].name} saved ${g.players[g.trade.from].name}’s offer for later.`,
+        `${g.players[g.trade.to].name} أجّل عرض ${g.players[g.trade.from].name} لوقت لاحق.`,
       );
       break;
     case "trade-review":
@@ -772,7 +766,7 @@ export function gameReducer(state: Game, action: Action): Game {
       for (const id of t.take) g.deeds[id].owner = t.from;
       log(
         g,
-        `${g.players[t.from].name} and ${g.players[t.to].name} completed a trade.`,
+        `${g.players[t.from].name} و${g.players[t.to].name} أتمّا صفقة تبادل.`,
       );
       g.trade = null;
       break;

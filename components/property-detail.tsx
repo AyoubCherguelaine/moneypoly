@@ -36,26 +36,23 @@ export function PropertyDetail({
     return (
       <div className="special-detail">
         <SpaceIcon type={s.type} size={42} />
-        <p className="deed-ar" lang="ar">
-          {s.arabic}
-        </p>
-        <h3>{s.name}</h3>
+        <h3 lang="ar">{s.arabic}</h3>
         <p>
           {s.type === "go"
-            ? `Collect ${settings.startSalary} DH each time you pass or land on Start.`
+            ? `احصل على ${money(settings.startSalary)} كلما مررت بالبداية أو توقفت عليها.`
             : s.type === "chance" || s.type === "community"
-              ? "Draw the top card, follow its instructions, and return it to the bottom. Keep Get out of jail free cards until used."
+              ? "اسحب البطاقة العليا واتبع تعليماتها ثم أعدها إلى الأسفل. احتفظ ببطاقات الخروج من السجن مجاناً حتى تستخدمها."
               : s.type === "tax"
                 ? settings.taxes
-                  ? `Pay ${money(s.price!)} ${settings.freeParkingPot ? "into the Free Parking pot" : "to the bank"}.`
-                  : "Taxes are disabled in this game."
+                  ? `ادفع ${money(s.price!)} ${settings.freeParkingPot ? "في صندوق الاستراحة" : "للبنك"}.`
+                  : "الضرائب معطّلة في هذه اللعبة."
                 : s.type === "go-jail"
-                  ? "Go directly to jail without passing Start."
+                  ? "اذهب مباشرة إلى السجن دون المرور بالبداية."
                   : s.type === "jail"
-                    ? `In jail? Roll doubles, pay ${settings.jailBail} DH before rolling, or use a free card. You must leave after three attempts. Rent in jail is ${settings.rentInJail ? "enabled" : "disabled"}.`
+                    ? `في السجن؟ ارمِ زوجاً، أو ادفع ${money(settings.jailBail)} قبل الرمي، أو استخدم بطاقة مجانية. يجب أن تخرج بعد ثلاث محاولات. قبض الإيجار في السجن ${settings.rentInJail ? "مفعّل" : "معطّل"}.`
                     : settings.freeParkingPot
-                      ? `Collect the Free Parking pot: ${money(g.parkingPot ?? 0)}.`
-                      : "Take a breath. Free Parking has no fee or bonus."}
+                      ? `خذ ما في صندوق الاستراحة: ${money(g.parkingPot ?? 0)}.`
+                      : "خذ نفساً. لا رسوم ولا جائزة في الاستراحة."}
         </p>
       </div>
     );
@@ -79,43 +76,41 @@ export function PropertyDetail({
             />
           )}
           <div className="deed-banner-body">
-            <span>TITLE DEED · سند الملكية</span>
+            <span>سند الملكية</span>
             <h3 lang="ar">{s.arabic}</h3>
-            <h2>{s.name}</h2>
+            {s.type === "city" && <h2>{s.name}</h2>}
             {s.group && <small>{GROUPS[s.group].name}</small>}
           </div>
         </div>
         <div className="deed-price">
-          <span>Purchase price</span>
+          <span>سعر الشراء</span>
           <b>{money(s.price!)}</b>
         </div>
         <div className="deed-info">
           <span>
-            Mortgage value <b>{money(s.price! / 2)}</b>
+            قيمة الرهن <b>{money(s.price! / 2)}</b>
           </span>
           {s.build && (
             <span>
-              Each house / hotel <b>{money(s.build)}</b>
+              كل منزل / فندق <b>{money(s.build)}</b>
             </span>
           )}
           <span>
-            {d
-              ? `Owned by ${g.players[d.owner].name}`
-              : "Available from the bank"}
+            {d ? `يملكها ${g.players[d.owner].name}` : "متاحة من البنك"}
             <b>
               {d?.mortgaged
-                ? "Mortgaged"
+                ? "مرهونة"
                 : d?.houses === 5
-                  ? "Hotel"
+                  ? "فندق"
                   : d?.houses
-                    ? `${d.houses} houses`
+                    ? `${d.houses} منازل`
                     : ""}
             </b>
           </span>
         </div>
         {d && (
           <p className="current-rent">
-            Current rent{" "}
+            الإيجار الحالي{" "}
             <strong>{money(rent(g, s, g.dice[0] + g.dice[1]))}</strong>
           </p>
         )}
@@ -124,12 +119,12 @@ export function PropertyDetail({
         {s.type === "city" ? (
           <div className="rent-table">
             {[
-              "Base rent",
-              "With 1 house",
-              "With 2 houses",
-              "With 3 houses",
-              "With 4 houses",
-              "With a hotel",
+              "الإيجار الأساسي",
+              "مع منزل واحد",
+              "مع منزلين",
+              "مع 3 منازل",
+              "مع 4 منازل",
+              "مع فندق",
             ].map((label, i) => (
               <div
                 className={
@@ -141,14 +136,18 @@ export function PropertyDetail({
                 <b>{money(s.rents![i])}</b>
               </div>
             ))}
-            <p>Base rent doubles when the full color set is owned.</p>
+            <p>يتضاعف الإيجار الأساسي عند امتلاك كل مدن اللون.</p>
           </div>
         ) : s.type === "rail" ? (
           <div className="rent-table">
             {[1, 2, 3, 4].map((n) => (
               <div key={n}>
                 <span>
-                  With {n} railway{n > 1 ? "s" : ""}
+                  {n === 1
+                    ? "مع محطة واحدة"
+                    : n === 2
+                      ? "مع محطتين"
+                      : `مع ${n} محطات`}
                 </span>
                 <b>{money(25 * 2 ** (n - 1))}</b>
               </div>
@@ -157,12 +156,12 @@ export function PropertyDetail({
         ) : (
           <div className="rent-table">
             <div>
-              <span>One utility owned</span>
-              <b>4 × dice total</b>
+              <span>عند امتلاك شركة واحدة</span>
+              <b>4 × مجموع النرد</b>
             </div>
             <div>
-              <span>Both utilities owned</span>
-              <b>10 × dice total</b>
+              <span>عند امتلاك الشركتين</span>
+              <b>10 × مجموع النرد</b>
             </div>
           </div>
         )}
@@ -177,7 +176,7 @@ export function PropertyDetail({
                   onClick={() => dispatch({ type: "build", space: s.id })}
                 >
                   <House size={16} />
-                  {d.houses === 4 ? "Build hotel" : "Build a house"} ·{" "}
+                  {d.houses === 4 ? "ابنِ فندقاً" : "ابنِ منزلاً"} ·{" "}
                   {money(s.build!)}
                 </Button>
                 {error && <p className="control-hint">{error}</p>}
@@ -195,7 +194,7 @@ export function PropertyDetail({
                   }
                   onClick={() => dispatch({ type: "sell", space: s.id })}
                 >
-                  Sell one building · +{money(s.build! / 2)}
+                  بِع مبنى واحداً · +{money(s.build! / 2)}
                 </Button>
               </>
             )}
@@ -218,16 +217,14 @@ export function PropertyDetail({
               onClick={() => dispatch({ type: "mortgage", space: s.id })}
             >
               {d.mortgaged
-                ? `Unmortgage · ${money(Math.ceil(s.price! * 0.55))}`
-                : `Mortgage · +${money(s.price! / 2)}`}
+                ? `فكّ الرهن · ${money(Math.ceil(s.price! * 0.55))}`
+                : `ارهن · +${money(s.price! / 2)}`}
             </Button>
             {!settings.mortgages && (
-              <small className="control-hint">
-                Mortgages are disabled for this game.
-              </small>
+              <small className="control-hint">الرهن معطّل في هذه اللعبة.</small>
             )}
             <small className="control-hint">
-              Bank stock: {stock.houses} houses · {stock.hotels} hotels
+              مخزون البنك: {stock.houses} منزلاً · {stock.hotels} فندقاً
             </small>
           </div>
         )}

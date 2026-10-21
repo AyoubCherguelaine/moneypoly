@@ -61,30 +61,29 @@ export function checkOrigin(request: NextRequest) {
     try {
       originHost = new URL(origin).host;
     } catch {
-      throw new SessionError("Invalid request origin.", 403);
+      throw new SessionError("مصدر الطلب غير صالح.", 403);
     }
     if (
       originHost !== (request.headers.get("host") ?? new URL(request.url).host)
     )
-      throw new SessionError("This request must come from the game page.", 403);
+      throw new SessionError("يجب أن يأتي هذا الطلب من صفحة اللعبة.", 403);
   }
   const length = Number(request.headers.get("content-length") ?? 0);
-  if (length > 12_000) throw new SessionError("Request is too large.", 413);
+  if (length > 12_000) throw new SessionError("الطلب كبير جداً.", 413);
 }
 export async function readBody(
   request: NextRequest,
 ): Promise<Record<string, unknown>> {
   checkOrigin(request);
   const text = await request.text();
-  if (text.length > 12_000)
-    throw new SessionError("Request is too large.", 413);
+  if (text.length > 12_000) throw new SessionError("الطلب كبير جداً.", 413);
   try {
     const body = JSON.parse(text);
     if (!body || typeof body !== "object" || Array.isArray(body))
       throw new Error();
     return body;
   } catch {
-    throw new SessionError("Invalid request.");
+    throw new SessionError("طلب غير صالح.");
   }
 }
 export function json(value: unknown, status = 200) {
@@ -104,8 +103,5 @@ export function failure(error: unknown) {
   )
     return json({ error: error.message }, (error as SessionError).status);
   console.error("Session request failed", error);
-  return json(
-    { error: "The session could not be updated. Please try again." },
-    500,
-  );
+  return json({ error: "تعذّر تحديث الجلسة. حاول مرة أخرى." }, 500);
 }

@@ -53,7 +53,7 @@ import { DEFAULT_SETTINGS } from "@/lib/settings";
 import { RulesSummary } from "./session-settings";
 
 const SAVE_KEY = "manypoly-save-v1";
-const preview = createGame(["Amine", "Yasmin", "Omar", "Lina"]);
+const preview = createGame(["أمين", "ياسمين", "عمر", "لينا"]);
 type Tab = "board" | "portfolio" | "cards";
 type RemoteGame = {
   game: Game;
@@ -70,7 +70,7 @@ export default function Manypoly({
   const [localGame, setGame] = useState<Game | null>(null),
     [loaded, setLoaded] = useState(false),
     [tab, setTab] = useState<Tab>("board");
-  const [names, setNames] = useState(["Amine", "Yasmin", "Omar", "Lina"]),
+  const [names, setNames] = useState(["أمين", "ياسمين", "عمر", "لينا"]),
     [selected, setSelected] = useState<Space | null>(null),
     [rules, setRules] = useState(false),
     [reset, setReset] = useState(false),
@@ -219,18 +219,22 @@ export default function Manypoly({
       onValueChange={(value) => setTab(value as Tab)}
     >
       <header className="site-header app-bar">
-        <Link className="wordmark" href="/" aria-label="Manypoly home">
+        <Link
+          className="wordmark"
+          href="/"
+          aria-label="الصفحة الرئيسية لMoneypoly"
+        >
           <span className="brand-mark">
-            m<span>✦</span>
+            م<span>✦</span>
           </span>
-          manypoly<span className="brand-dot">.</span>
+          Moneypoly<span className="brand-dot">.</span>
         </Link>
-        <TabsList variant="line" className="tabs" aria-label="Game views">
+        <TabsList variant="line" className="tabs" aria-label="أقسام اللعبة">
           {(
             [
-              ["board", "Board", MapPin],
-              ["portfolio", "Properties", House],
-              ["cards", "Cards", BookOpen],
+              ["board", "اللوحة", MapPin],
+              ["portfolio", "العقارات", House],
+              ["cards", "البطاقات", BookOpen],
             ] as const
           ).map(([key, label, Icon]) => (
             <TabsTrigger
@@ -249,18 +253,18 @@ export default function Manypoly({
             role="status"
           >
             {g.phase === "over"
-              ? `${g.players.find((player) => !player.bankrupt)?.name} wins`
+              ? `${g.players.find((player) => !player.bankrupt)?.name} يفوز`
               : g.trade && !g.trade.deferred
-                ? `Trade waiting for ${g.players[g.trade.to].name}`
+                ? `صفقة بانتظار ${g.players[g.trade.to].name}`
                 : canAct
-                  ? "Your move"
-                  : `Waiting for ${g.players[actor].name}`}
+                  ? "دورك"
+                  : `في انتظار ${g.players[actor].name}`}
           </span>
         ) : (
           <span className="app-status">
             {game
-              ? `Round ${Math.ceil(g.turn / g.players.length)}`
-              : "Let’s play"}
+              ? `الجولة ${Math.ceil(g.turn / g.players.length)}`
+              : "هيا نلعب"}
           </span>
         )}
         {sessionBar}
@@ -269,22 +273,22 @@ export default function Manypoly({
             className="save-state"
             title={
               remote
-                ? "Shared game · saved on the server"
+                ? "لعبة مشتركة · محفوظة على الخادم"
                 : saveError
-                  ? "Local saving unavailable — keep this tab open"
-                  : "Your game saves automatically on this device"
+                  ? "الحفظ المحلي غير متاح — أبقِ هذه الصفحة مفتوحة"
+                  : "تُحفظ لعبتك تلقائياً على هذا الجهاز"
             }
           >
             <ShieldCheck size={15} />
-            {remote ? "SHARED" : "LOCAL"}
+            {remote ? "مشتركة" : "محلية"}
           </span>
           {game && !remote && (
             <Button
               variant="ghost"
               className="icon-button h-auto"
               onClick={() => setReset(true)}
-              aria-label="New game"
-              title="New game"
+              aria-label="لعبة جديدة"
+              title="لعبة جديدة"
             >
               <RotateCcw size={17} />
             </Button>
@@ -293,7 +297,7 @@ export default function Manypoly({
             variant="ghost"
             className="icon-button h-auto"
             onClick={() => setSound(!sound)}
-            aria-label={sound ? "Mute sound" : "Enable sound"}
+            aria-label={sound ? "كتم الصوت" : "تشغيل الصوت"}
           >
             {sound ? <Volume2 size={18} /> : <VolumeX size={18} />}
           </Button>
@@ -301,7 +305,7 @@ export default function Manypoly({
             variant="ghost"
             className="icon-button help-button h-auto"
             onClick={() => setRules(true)}
-            aria-label="How to play"
+            aria-label="طريقة اللعب"
           >
             <CircleHelp size={18} />
           </Button>
@@ -332,19 +336,16 @@ export default function Manypoly({
               ) : tab === "portfolio" ? (
                 <div className="content-view">
                   <div className="view-heading">
-                    <span className="eyebrow">YOUR LITTLE EMPIRE</span>
-                    <h2>Every great journey starts with a city.</h2>
-                    <p>
-                      Select a title deed to see rent, build, or manage a
-                      mortgage.
-                    </p>
+                    <span className="eyebrow">إمبراطوريتك الصغيرة</span>
+                    <h2>كل رحلة عظيمة تبدأ بمدينة.</h2>
+                    <p>اختر سند ملكية لعرض الإيجار أو البناء أو إدارة الرهن.</p>
                   </div>
                   {g.players.map((player) => (
                     <div className="portfolio-player" key={player.id}>
                       <div className="portfolio-heading">
                         <Token id={player.id} />
                         <h3>{player.name}</h3>
-                        <span>{money(netWorth(g, player.id))} net worth</span>
+                        <span>صافي الثروة {money(netWorth(g, player.id))}</span>
                       </div>
                       <div className="property-grid">
                         {Object.entries(g.deeds)
@@ -371,14 +372,16 @@ export default function Manypoly({
                                 />
                               )}
                               <span lang="ar">{BOARD[+id].arabic}</span>
-                              <b>{BOARD[+id].name}</b>
+                              {BOARD[+id].type === "city" && (
+                                <b>{BOARD[+id].name}</b>
+                              )}
                               <small>
                                 {d.mortgaged
-                                  ? "Mortgaged"
+                                  ? "مرهونة"
                                   : d.houses === 5
-                                    ? "Hotel"
+                                    ? "فندق"
                                     : d.houses
-                                      ? `${d.houses} houses`
+                                      ? `${d.houses} منازل`
                                       : money(BOARD[+id].price!)}
                               </small>
                             </button>
@@ -388,7 +391,7 @@ export default function Manypoly({
                         (d) => d.owner === player.id,
                       ) && (
                         <p className="empty-copy">
-                          A world of possibilities. No properties yet.
+                          عالم من الاحتمالات. لا عقارات بعد.
                         </p>
                       )}
                     </div>
@@ -403,18 +406,18 @@ export default function Manypoly({
             {!game ? (
               <Card className="lobby card-panel">
                 <div className="section-kicker">
-                  <span>GATHER YOUR PEOPLE</span>
+                  <span>اجمع أحبابك</span>
                   <Users size={17} />
                 </div>
                 <h2>
-                  A table for <em>{names.length}.</em>
+                  طاولة لـ<em>{names.length}.</em>
                 </h2>
                 <p>
-                  Pick your names, choose your seats.
+                  اختاروا أسماءكم ومقاعدكم.
                   <br />
-                  The first adventure is on us.
+                  المغامرة الأولى علينا.
                 </p>
-                <div className="player-count" aria-label="Number of players">
+                <div className="player-count" aria-label="عدد اللاعبين">
                   {[2, 3, 4, 5, 6].map((n) => (
                     <Button
                       variant="ghost"
@@ -427,14 +430,9 @@ export default function Manypoly({
                             { length: n },
                             (_, i) =>
                               prev[i] ??
-                              [
-                                "Amine",
-                                "Yasmin",
-                                "Omar",
-                                "Lina",
-                                "Salma",
-                                "Ali",
-                              ][i],
+                              ["أمين", "ياسمين", "عمر", "لينا", "سلمى", "علي"][
+                                i
+                              ],
                           ),
                         )
                       }
@@ -448,7 +446,7 @@ export default function Manypoly({
                     <Label key={i}>
                       <Token id={i} />
                       <Input
-                        aria-label={`Player ${i + 1} name`}
+                        aria-label={`اسم اللاعب ${i + 1}`}
                         maxLength={18}
                         value={name}
                         onChange={(e) =>
@@ -467,11 +465,12 @@ export default function Manypoly({
                   disabled={!loaded}
                   onClick={() => setGame(createGame(names))}
                 >
-                  {loaded ? "Let’s play" : "Getting the table ready…"}
+                  {loaded ? "هيا نلعب" : "جارٍ تجهيز الطاولة…"}
                   <ArrowRight size={18} />
                 </Button>
                 <div className="lobby-footnote">
-                  <Coins size={14} /> 1,500 dirhams each. A world to explore.
+                  <Coins size={14} /> 1,500 درهم لكل لاعب. وعالم ينتظر
+                  الاستكشاف.
                 </div>
               </Card>
             ) : (
@@ -479,15 +478,15 @@ export default function Manypoly({
                 <fieldset
                   className="turn-panel card-panel turn-fieldset"
                   disabled={locked}
-                  aria-label="Current turn controls"
+                  aria-label="أدوات الدور الحالي"
                 >
                   <div className="section-kicker">
                     <span>
                       {g.phase === "over"
-                        ? "THE WORLD IS YOURS"
+                        ? "العالم ملكك"
                         : g.debt
-                          ? "A LITTLE HELP FROM YOUR ASSETS"
-                          : `TURN ${g.turn} · ${g.phase === "auction" ? "AUCTION TIME" : "MAKE YOUR MOVE"}`}
+                          ? "قليل من العون من أملاكك"
+                          : `الدور ${g.turn} · ${g.phase === "auction" ? "وقت المزاد" : "حان دورك"}`}
                     </span>
                     {g.phase === "over" ? (
                       <Trophy size={17} />
@@ -497,21 +496,20 @@ export default function Manypoly({
                   </div>
                   {g.phase === "over" ? (
                     <>
-                      <h2>{g.players.find((p) => !p.bankrupt)?.name} wins!</h2>
-                      <p>A journey well played. Ready for another?</p>
+                      <h2>{g.players.find((p) => !p.bankrupt)?.name} يفوز!</h2>
+                      <p>رحلة أُحسن لعبها. مستعد لأخرى؟</p>
                       {!remote && (
                         <Button
                           variant="default"
                           className="primary-button"
                           onClick={() => setReset(true)}
                         >
-                          Play again <RotateCcw size={17} />
+                          العب مجدداً <RotateCcw size={17} />
                         </Button>
                       )}
                       {remote && (
                         <p>
-                          The host can return everyone to the lobby for another
-                          game.
+                          يمكن للمضيف إعادة الجميع إلى الردهة للعب مرة أخرى.
                         </p>
                       )}
                     </>
@@ -521,26 +519,24 @@ export default function Manypoly({
                         <Token id={g.debt ? debtor.id : p.id} />
                         <div>
                           <h2>
+                            <span>دور </span>
                             {g.debt ? debtor.name : p.name}
-                            <span>’s turn</span>
                           </h2>
                           <p>
                             {g.debt
-                              ? "Time to settle up"
+                              ? "حان وقت السداد"
                               : p.jailed
-                                ? "In jail · " + p.jailTurns + " / 3 attempts"
-                                : BOARD[p.position].name +
-                                  " · " +
-                                  BOARD[p.position].arabic}
+                                ? "في السجن · " + p.jailTurns + " / 3 محاولات"
+                                : BOARD[p.position].arabic}
                           </p>
                         </div>
                       </div>
                       {g.debt ? (
                         <div className="debt-box">
-                          <h3>{money(g.debt.amount)} due</h3>
+                          <h3>مستحق: {money(g.debt.amount)}</h3>
                           <p>
-                            {g.debt.reason}. You have {money(debtor.money)}.
-                            Manage your properties below or offer a trade.
+                            {g.debt.reason}. لديك {money(debtor.money)}. أدِر
+                            عقاراتك أدناه أو اعرض صفقة تبادل.
                           </p>
                           <Button
                             variant="default"
@@ -550,7 +546,7 @@ export default function Manypoly({
                             }
                             onClick={() => dispatch({ type: "settle" })}
                           >
-                            Settle debt <Wallet size={17} />
+                            سداد الدين <Wallet size={17} />
                           </Button>
                           <Button
                             variant="ghost"
@@ -558,13 +554,14 @@ export default function Manypoly({
                             disabled={tradeOpen(g)}
                             onClick={() => dispatch({ type: "bankrupt" })}
                           >
-                            Declare bankruptcy
+                            أعلن الإفلاس
                           </Button>
                         </div>
                       ) : g.phase === "auction" ? (
                         <p className="stage-pointer">
-                          <MapPin size={14} /> Auction for{" "}
-                          <b>{BOARD[g.auction!.space].name}</b> is on the board.
+                          <MapPin size={14} /> مزاد{" "}
+                          <b>{BOARD[g.auction!.space].name}</b> معروض على
+                          اللوحة.
                         </p>
                       ) : (
                         <>
@@ -575,12 +572,12 @@ export default function Manypoly({
                             </div>
                             <p>
                               {rolling
-                                ? "A little luck goes a long way…"
+                                ? "قليل من الحظ يصنع الكثير…"
                                 : g.phase === "roll"
-                                  ? "A new possibility with every roll."
+                                  ? "احتمال جديد مع كل رمية."
                                   : g.extraRoll
-                                    ? "Doubles! Another roll is yours."
-                                    : `${g.dice[0] + g.dice[1]} spaces. One step closer.`}
+                                    ? "زوج! لك رمية أخرى."
+                                    : `${g.dice[0] + g.dice[1]} خانات. خطوة أقرب.`}
                             </p>
                           </div>
                           {g.phase === "roll" ? (
@@ -592,7 +589,7 @@ export default function Manypoly({
                                 disabled={rolling || tradeOpen(g)}
                               >
                                 <Dices size={19} />
-                                {rolling ? "Rolling…" : "Roll the dice"}
+                                {rolling ? "جارٍ الرمي…" : "ارمِ النرد"}
                                 <span>↵</span>
                               </Button>
                               {p.jailed && (
@@ -607,7 +604,7 @@ export default function Manypoly({
                                     }
                                     onClick={() => dispatch({ type: "bail" })}
                                   >
-                                    Pay {settings.jailBail} DH
+                                    ادفع {money(settings.jailBail)}
                                   </Button>
                                   <Button
                                     variant="outline"
@@ -619,15 +616,15 @@ export default function Manypoly({
                                     }
                                     onClick={() => dispatch({ type: "escape" })}
                                   >
-                                    Use free card ({p.escape.length})
+                                    استخدم البطاقة المجانية ({p.escape.length})
                                   </Button>
                                 </div>
                               )}
                             </>
                           ) : g.phase === "buy" ? (
                             <p className="stage-pointer">
-                              <MapPin size={14} /> Decide on the board:{" "}
-                              <b>{BOARD[p.position].name}</b> is for sale.
+                              <MapPin size={14} /> قرّر على اللوحة:{" "}
+                              <b>{BOARD[p.position].name}</b> معروضة للبيع.
                             </p>
                           ) : (
                             <Button
@@ -636,9 +633,7 @@ export default function Manypoly({
                               disabled={tradeOpen(g)}
                               onClick={() => dispatch({ type: "end" })}
                             >
-                              {g.extraRoll
-                                ? "Take your extra roll"
-                                : "End turn"}
+                              {g.extraRoll ? "خذ رميتك الإضافية" : "أنهِ الدور"}
                               <ArrowRight size={18} />
                             </Button>
                           )}
@@ -649,9 +644,9 @@ export default function Manypoly({
                 </fieldset>
                 <Card className="players-panel card-panel">
                   <div className="section-kicker">
-                    <span>AROUND THE TABLE</span>
+                    <span>حول الطاولة</span>
                     <span>
-                      {g.players.filter((p) => !p.bankrupt).length} PLAYERS
+                      {g.players.filter((p) => !p.bankrupt).length} لاعبين
                     </span>
                   </div>
                   {g.players.map((player) => (
@@ -664,13 +659,13 @@ export default function Manypoly({
                         <b>
                           {player.name}
                           {player.id === g.current && (
-                            <span className="your-turn">PLAYING</span>
+                            <span className="your-turn">يلعب الآن</span>
                           )}
                         </b>
                         <small>
                           {player.bankrupt
-                            ? "Bankrupt"
-                            : `${Object.values(g.deeds).filter((d) => d.owner === player.id).length} properties${player.escape.length ? " · ♧ " + player.escape.length : ""}`}
+                            ? "مفلس"
+                            : `${Object.values(g.deeds).filter((d) => d.owner === player.id).length} عقارات${player.escape.length ? " · ♧ " + player.escape.length : ""}`}
                         </small>
                       </div>
                       <strong>{money(player.money)}</strong>
@@ -695,7 +690,7 @@ export default function Manypoly({
                     onClick={() => setTrading(true)}
                   >
                     <Handshake size={16} />
-                    Make a trade
+                    اعرض صفقة تبادل
                     <ArrowUpRight size={15} />
                   </Button>
                 </Card>
@@ -704,10 +699,10 @@ export default function Manypoly({
                     <div className="section-kicker">
                       <span>
                         {remote
-                          ? "YOUR PROPERTIES"
+                          ? "عقاراتك"
                           : g.debt
-                            ? debtor.name.toUpperCase() + "’S ASSETS"
-                            : "YOUR PROPERTIES"}
+                            ? "أملاك " + debtor.name
+                            : "عقاراتك"}
                       </span>
                       <House size={16} />
                     </div>
@@ -729,12 +724,12 @@ export default function Manypoly({
                           <span>{s.name}</span>
                           <small>
                             {g.deeds[s.id].mortgaged
-                              ? "Mortgaged"
+                              ? "مرهونة"
                               : g.deeds[s.id].houses === 5
-                                ? "Hotel"
+                                ? "فندق"
                                 : g.deeds[s.id].houses
                                   ? `${g.deeds[s.id].houses} ⌂`
-                                  : "Title deed"}
+                                  : "سند ملكية"}
                           </small>
                           <ChevronRight size={13} />
                         </Button>
@@ -744,16 +739,14 @@ export default function Manypoly({
                 )}
                 {settings.freeParkingPot && (
                   <Card className="card-panel parking-pot">
-                    <span className="eyebrow">
-                      FREE PARKING POT · الاستراحة
-                    </span>
+                    <span className="eyebrow">صندوق الاستراحة</span>
                     <strong>{money(g.parkingPot ?? 0)}</strong>
-                    <p>Collected taxes go to the next player landing here.</p>
+                    <p>الضرائب المجمّعة تذهب لأول لاعب يتوقف هنا.</p>
                   </Card>
                 )}
                 <section className="activity-panel">
                   <div className="section-kicker">
-                    <span>THE STORY SO FAR</span>
+                    <span>الحكاية حتى الآن</span>
                     <Waves size={16} />
                   </div>
                   <div
@@ -775,10 +768,11 @@ export default function Manypoly({
               <div className="little-note">
                 <span>✧</span>
                 <div>
-                  <b>The best kind of screen time.</b>
+                  <b>أجمل وقت أمام الشاشة.</b>
                   <p>
-                    One device. Your favorite people.
-                    <br />A friendly rivalry or two.
+                    جهاز واحد. وأحبّ الناس إليك.
+                    <br />
+                    ومنافسة ودّية أو اثنتان.
                   </p>
                 </div>
               </div>
@@ -790,8 +784,8 @@ export default function Manypoly({
         <Modal
           title={
             selected.price && selected.type !== "tax"
-              ? "Title deed"
-              : "Around the board"
+              ? "سند الملكية"
+              : "جولة في اللوحة"
           }
           onClose={() => setSelected(null)}
           wide={!!selected.price && selected.type !== "tax"}
@@ -805,16 +799,16 @@ export default function Manypoly({
         </Modal>
       )}
       {rules && (
-        <Modal title="A seat at the table" onClose={() => setRules(false)} wide>
+        <Modal title="مقعد على الطاولة" onClose={() => setRules(false)} wide>
           <RulesSummary settings={settings} />
           <Rules settings={settings} />
         </Modal>
       )}
       {reset && (
-        <Modal title="A new adventure?" onClose={() => setReset(false)}>
+        <Modal title="مغامرة جديدة؟" onClose={() => setReset(false)}>
           <p className="modal-copy">
-            This will replace your saved game on this device. Everyone starts
-            again with 1,500 dirhams.
+            ستحل هذه اللعبة محل لعبتك المحفوظة على هذا الجهاز. يبدأ الجميع من
+            جديد بـ 1,500 درهم.
           </p>
           <div className="modal-actions">
             <Button
@@ -822,21 +816,21 @@ export default function Manypoly({
               className="secondary-button"
               onClick={() => setReset(false)}
             >
-              Keep playing
+              تابع اللعب
             </Button>
             <Button
               variant="default"
               className="primary-button"
               onClick={newGame}
             >
-              New game <ArrowRight size={16} />
+              لعبة جديدة <ArrowRight size={16} />
             </Button>
           </div>
         </Modal>
       )}
       {trading && (
         <Modal
-          title="A good deal goes both ways"
+          title="الصفقة الجيدة ترضي الطرفين"
           onClose={() => setTrading(false)}
           wide
         >

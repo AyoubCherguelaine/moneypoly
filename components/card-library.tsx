@@ -28,11 +28,15 @@ export function CardLibrary({
       className="content-view card-library"
     >
       <div className="view-heading">
-        <span className="eyebrow">A LITTLE TWIST IN THE JOURNEY</span>
-        <h2>Good fortune. Great stories.</h2>
-        <p>32 action cards and 28 title deeds. Explore every possibility.</p>
+        <span className="eyebrow">مفاجآت صغيرة على الطريق</span>
+        <h2>حظ سعيد. حكايات رائعة.</h2>
+        <p>32 بطاقة حدث و28 سند ملكية. اكتشف كل الاحتمالات.</p>
       </div>
-      <TabsList className="library-tabs" variant="line" aria-label="Card decks">
+      <TabsList
+        className="library-tabs"
+        variant="line"
+        aria-label="مجموعات البطاقات"
+      >
         {(["chance", "community", "deeds"] as const).map((d) => (
           <TabsTrigger
             value={d}
@@ -40,8 +44,8 @@ export function CardLibrary({
             key={d}
           >
             {d === "deeds"
-              ? "Title deeds · 28"
-              : `${d === "chance" ? "Chance" : "Community"} · 16`}
+              ? "سندات الملكية · 28"
+              : `${d === "chance" ? "فرصة" : "صندوق المجتمع"} · 16`}
           </TabsTrigger>
         ))}
       </TabsList>
@@ -70,7 +74,7 @@ export function CardLibrary({
                   />
                 )}
                 <span lang="ar">{s.arabic}</span>
-                <b>{s.name}</b>
+                {s.type === "city" && <b>{s.name}</b>}
                 <small>{money(s.price!)}</small>
               </button>
             ))}
@@ -87,15 +91,12 @@ export function CardLibrary({
                   )}
                   <span>{String(i + 1).padStart(2, "0")} / 16</span>
                 </div>
-                 <h3 lang="ar">{c.arabicTitle}</h3>
-                 <p lang="ar">
-                   {["move", "jail"].includes(c.effect)
-                     ? c.arabicText.replaceAll(
-                         "200 درهم",
-                         `${money(settings.startSalary)}`,
-                       )
-                     : c.arabicText}
-                 </p>
+                <h3 lang="ar">{c.title}</h3>
+                <p lang="ar">
+                  {["move", "jail"].includes(c.effect)
+                    ? c.text.replaceAll("200 درهم", money(settings.startSalary))
+                    : c.text}
+                </p>
               </article>
             ))}
           </div>

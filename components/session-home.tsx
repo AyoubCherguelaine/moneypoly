@@ -20,14 +20,14 @@ import { PropertyDetail } from "./property-detail";
 import { createGame } from "@/lib/game";
 import type { Space } from "@/lib/board";
 import type { SessionView } from "@/lib/session-types";
-const preview = createGame(["You", "Your friends"]);
+const preview = createGame(["أنت", "أصدقاؤك"]);
 export function SessionBrand() {
   return (
-    <Link className="wordmark" href="/" aria-label="Manypoly home">
+    <Link className="wordmark" href="/" aria-label="الصفحة الرئيسية لMoneypoly">
       <span className="brand-mark">
-        m<span>✦</span>
+        م<span>✦</span>
       </span>
-      manypoly<span className="brand-dot">.</span>
+      Moneypoly<span className="brand-dot">.</span>
     </Link>
   );
 }
@@ -52,7 +52,10 @@ export default function SessionHome() {
       router.push(`/session/${(data as SessionView).id}`);
     } catch (e) {
       setError(
-        e instanceof Error ? e.message : "Could not create the session.",
+        // Only server errors are worded for players; network ones come from the browser.
+        e instanceof Error && e.name === "Error"
+          ? e.message
+          : "تعذّر إنشاء الجلسة.",
       );
       setBusy(false);
     }
@@ -64,8 +67,7 @@ export default function SessionHome() {
       const id =
         input.match(/(?:^|\/)session\/([A-Za-z0-9_-]{12})(?:[/?#]|$)/)?.[1] ??
         (/^[A-Za-z0-9_-]{12}$/.test(input) ? input : null);
-      if (!id)
-        throw new Error("Enter the 12-character session code.");
+      if (!id) throw new Error("أدخل رمز الجلسة المكوّن من 12 حرفاً.");
       router.push(
         `/session/${id}${username.trim() ? `?username=${encodeURIComponent(username.trim())}` : ""}`,
       );
@@ -77,61 +79,55 @@ export default function SessionHome() {
     <div className="app-shell">
       <header className="site-header">
         <SessionBrand />
-        <span className="header-edition">
-          YOUR PEOPLE. YOUR CITIES. YOUR RULES.
-        </span>
+        <span className="header-edition">ناسك. مدنك. قواعدك.</span>
         <span className="local-badge">
-          <i /> UP TO 6 PLAYERS
+          <i /> حتى 6 لاعبين
         </span>
       </header>
       <main>
         <section className="intro">
           <div>
             <div className="eyebrow">
-              <span /> A FAMILIAR WORLD. A SHARED ADVENTURE.
+              <span /> عالم مألوف. مغامرة مشتركة.
             </div>
             <h1>
-              One link. Your whole table<span>.</span>
+              رابط واحد يجمع طاولتك كلها<span>.</span>
             </h1>
-            <p>
-              Create a session, invite your friends, and make the Arab world
-              your own.
-            </p>
+            <p>أنشئ جلسة، وادعُ أصدقاءك، واجعل العالم العربي ملكك.</p>
           </div>
           <div className="intro-note">
             <span lang="ar" dir="rtl">
               رابط واحد يجمعنا
             </span>
-            <p>Your cities. Your rules.</p>
+            <p>مدنك. قواعدك.</p>
           </div>
         </section>
         <div className="game-layout session-home-layout">
           <section className="main-panel">
             <div className="panel-toolbar">
-              <span className="eyebrow">
-                22 CITIES · 32 ACTION CARDS · DIRHAMS
-              </span>
+              <span className="eyebrow">22 مدينة · 32 بطاقة حدث · دراهم</span>
             </div>
             <GameBoard game={preview} started={false} onSpace={setSelected} />
             <div className="board-caption">
               <span>
-                <Globe2 size={14} /> Play together on separate devices.
+                <Globe2 size={14} /> العبوا معاً كلٌّ من جهازه.
               </span>
               <Link href="/local">
-                Play on one device <ArrowUpRight size={14} />
+                العب على جهاز واحد <ArrowUpRight size={14} />
               </Link>
             </div>
           </section>
           <aside className="sidebar">
             <Card className="card-panel create-session-panel">
               <div className="section-kicker">
-                <span>MAKE ROOM FOR YOUR PEOPLE</span>
+                <span>أفسح المكان لأحبابك</span>
                 <Users size={17} />
               </div>
-              <h2>Start a new story.</h2>
+              <h2>ابدأ حكاية جديدة.</h2>
               <p>
-                No account, email, or password.
-                <br />A username is all you need.
+                دون حساب أو بريد إلكتروني أو كلمة مرور.
+                <br />
+                كل ما تحتاجه اسم مستخدم.
               </p>
               <form
                 onSubmit={(e) => {
@@ -140,7 +136,7 @@ export default function SessionHome() {
                 }}
               >
                 <Label className="field-label">
-                  Your username · اسم المستخدم
+                  اسم المستخدم
                   <Input
                     name="username"
                     autoComplete="nickname"
@@ -149,7 +145,7 @@ export default function SessionHome() {
                     required
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    placeholder="e.g. Amine / أمين"
+                    placeholder="مثلاً: أمين"
                   />
                 </Label>
                 <Button
@@ -157,12 +153,12 @@ export default function SessionHome() {
                   className="primary-button"
                   disabled={busy}
                 >
-                  {busy ? "Creating your table…" : "Create a session"}
+                  {busy ? "جارٍ تجهيز طاولتك…" : "أنشئ جلسة"}
                   <ArrowRight size={17} />
                 </Button>
               </form>
               <div className="session-home-divider">
-                <span>HAVE AN INVITATION?</span>
+                <span>لديك دعوة؟</span>
               </div>
               <form
                 onSubmit={(e) => {
@@ -171,12 +167,13 @@ export default function SessionHome() {
                 }}
               >
                 <Label className="field-label">
-                  Session code
+                  رمز الجلسة
                   <Input
                     value={link}
                     required
                     onChange={(e) => setLink(e.target.value)}
-                    placeholder="e.g. aB3dE5fG7hJ9"
+                    placeholder="مثلاً: aB3dE5fG7hJ9"
+
                     maxLength={200}
                     autoComplete="off"
                     spellCheck={false}
@@ -187,7 +184,7 @@ export default function SessionHome() {
                   className="secondary-button"
                   disabled={busy}
                 >
-                  <Link2 size={15} /> Join a session
+                  <Link2 size={15} /> انضم إلى جلسة
                 </Button>
               </form>
               {error && (
@@ -199,26 +196,26 @@ export default function SessionHome() {
             <div className="little-note">
               <SlidersHorizontal size={25} />
               <div>
-                <b>A table that plays your way.</b>
+                <b>طاولة تلعب على طريقتك.</b>
                 <p>
-                  Choose auctions, rent in jail, mortgages, taxes, and more
-                  before the first roll.
+                  اختر المزادات، والإيجار في السجن، والرهن، والضرائب وغيرها قبل
+                  الرمية الأولى.
                 </p>
               </div>
             </div>
           </aside>
         </div>
         <footer>
-          <span>MADE FOR THE WAY WE COME TOGETHER.</span>
+          <span>صُنعت لتجمعنا كما نحب.</span>
           <div>
             <span>✦</span>
-            <b>Play a little. Dream a little bigger.</b>
+            <b>العب قليلاً. واحلم أكبر قليلاً.</b>
           </div>
           <span>اللعب يجمعنا</span>
         </footer>
       </main>
       {selected && (
-        <Modal title="Explore the board" onClose={() => setSelected(null)}>
+        <Modal title="استكشف اللوحة" onClose={() => setSelected(null)}>
           <PropertyDetail
             space={selected}
             game={preview}

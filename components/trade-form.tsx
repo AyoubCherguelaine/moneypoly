@@ -12,12 +12,12 @@ const CASH_STEPS = [50, 100, 200];
 
 function tradable(g: Game, id: number) {
   const d = g.deeds[id];
-  if (d.mortgaged) return "Mortgaged";
+  if (d.mortgaged) return "مرهونة";
   if (
     BOARD[id].group &&
     groupSpaces(BOARD[id]).some((s) => g.deeds[s.id]?.houses)
   )
-    return "Has buildings";
+    return "فيها مبانٍ";
   return null;
 }
 
@@ -55,7 +55,7 @@ function DealSide({
         <em>{money(p.money)}</em>
       </header>
       <label className="deal-cash">
-        <span>Dirhams</span>
+        <span>الدراهم</span>
         <Input
           type="number"
           min="0"
@@ -63,7 +63,7 @@ function DealSide({
           step="1"
           value={cash}
           onChange={(e) => setCash(e.target.value)}
-          aria-label={`${p.name} gives dirhams`}
+          aria-label={`دراهم يعطيها ${p.name}`}
         />
       </label>
       <div className="deal-steps">
@@ -78,7 +78,7 @@ function DealSide({
           </button>
         ))}
         <button type="button" disabled={!amount} onClick={() => setCash("0")}>
-          Clear
+          مسح
         </button>
       </div>
       <div className="deal-deeds">
@@ -113,7 +113,7 @@ function DealSide({
                   <SpaceIcon type={s.type} size={16} />
                 </i>
               )}
-              <b>{s.name}</b>
+              <b>{s.type === "city" ? s.name : s.arabic}</b>
               <small>{blocked ?? money(s.price!)}</small>
               {on && (
                 <span className="deal-check">
@@ -123,7 +123,7 @@ function DealSide({
             </button>
           );
         })}
-        {!deeds.length && <p>No properties yet.</p>}
+        {!deeds.length && <p>لا عقارات بعد.</p>}
       </div>
     </section>
   );
@@ -173,8 +173,8 @@ export function TradeForm({
           });
       }}
     >
-      <div className="deal-partners" role="radiogroup" aria-label="Trade with">
-        <span>Trade with</span>
+      <div className="deal-partners" role="radiogroup" aria-label="بادل مع">
+        <span>بادل مع</span>
         {partners.map((p) => (
           <button
             type="button"
@@ -197,7 +197,7 @@ export function TradeForm({
         <DealSide
           game={g}
           player={from}
-          label="You give"
+          label="تعطي"
           cash={cashGive}
           setCash={setCashGive}
           selected={give}
@@ -209,7 +209,7 @@ export function TradeForm({
         <DealSide
           game={g}
           player={to}
-          label="You get"
+          label="تأخذ"
           cash={cashTake}
           setCash={setCashTake}
           selected={take}
@@ -218,24 +218,24 @@ export function TradeForm({
       </div>
       <div className="deal-summary">
         <div>
-          <span>You give ≈ {money(out)}</span>
+          <span>تعطي ≈ {money(out)}</span>
           <b>
             {!total
-              ? "Pick what to swap"
+              ? "اختر ما تريد مبادلته"
               : Math.abs(lean) < 0.12
-                ? "Looks fair"
+                ? "تبدو عادلة"
                 : lean > 0
-                  ? `Good for ${g.players[from].name}`
-                  : `Good for ${g.players[to].name}`}
+                  ? `لصالح ${g.players[from].name}`
+                  : `لصالح ${g.players[to].name}`}
           </b>
-          <span>You get ≈ {money(back)}</span>
+          <span>تأخذ ≈ {money(back)}</span>
         </div>
         <div className="deal-meter" aria-hidden="true">
           <i style={{ left: `${50 + lean * 50}%` }} />
         </div>
         <small>
-          Based on list prices. {g.players[to].name} can accept, decline, or
-          save it for later.
+          وفق الأسعار المعلنة. يمكن لـ{g.players[to].name} القبول أو الرفض أو
+          التأجيل لوقت لاحق.
         </small>
       </div>
       <Button
@@ -244,7 +244,7 @@ export function TradeForm({
         className="primary-button"
         disabled={!valid}
       >
-        <Handshake size={17} /> Send offer to {g.players[to].name}
+        <Handshake size={17} /> أرسل العرض إلى {g.players[to].name}
       </Button>
     </form>
   );

@@ -18,9 +18,11 @@ import { BOARD, GROUPS, money, type Space } from "@/lib/board";
 import {
   AUCTION_BID_MS,
   AUCTION_OPEN_MS,
+  arrivedIn,
   groupSpaces,
   tradeOpen,
   tradeValid,
+  wentToJail,
   type Action,
   type Game,
 } from "@/lib/game";
@@ -67,10 +69,10 @@ function DeedFace({ space: s, compact }: { space: Space; compact?: boolean }) {
       )}
       <div className="stage-deed-body">
         <span>
-          {group ? group.name : s.type === "rail" ? "Railway" : "Utility"}
+          {group ? group.name : s.type === "rail" ? "سكة حديد" : "شركة خدمات"}
         </span>
         <b lang="ar">{s.arabic}</b>
-        <strong>{s.name}</strong>
+        {s.type === "city" && <strong>{s.name}</strong>}
       </div>
     </div>
   );
@@ -81,8 +83,8 @@ function seat(g: Game, viewer: number | undefined, actor: number) {
   const name = g.players[actor].name;
   return {
     canAct: viewer === undefined || viewer === actor,
-    waiting: `Waiting for ${name}…`,
-    handOff: viewer === undefined ? `Pass the device to ${name}.` : null,
+    waiting: `في انتظار ${name}…`,
+    handOff: viewer === undefined ? `مرّر الجهاز إلى ${name}.` : null,
   };
 }
 
@@ -116,37 +118,37 @@ function OfferStage({
     <div
       className="stage-panel offer-stage"
       role="dialog"
-      aria-label="Property offer"
+      aria-label="عرض شراء عقار"
     >
       <span className="stage-kicker">
-        <House size={13} /> FOR SALE · {p.name.toUpperCase()} LANDED HERE
+        <House size={13} /> للبيع · {p.name} توقف هنا
       </span>
       <DeedFace space={s} />
       <div className="offer-facts">
         <div>
-          <span>Price</span>
+          <span>السعر</span>
           <b>{money(price)}</b>
         </div>
         <div>
-          <span>{s.type === "city" ? "Base rent" : "Rent"}</span>
+          <span>{s.type === "city" ? "الإيجار الأساسي" : "الإيجار"}</span>
           <b>
             {s.type === "city"
               ? money(s.rents![0])
               : s.type === "rail"
                 ? `${money(25)}+`
-                : "4× dice"}
+                : "4× النرد"}
           </b>
         </div>
         <div>
-          <span>{s.type === "city" ? "With hotel" : "Mortgage"}</span>
+          <span>{s.type === "city" ? "مع فندق" : "قيمة الرهن"}</span>
           <b>{s.type === "city" ? money(s.rents![5]) : money(price / 2)}</b>
         </div>
       </div>
       <p className={`offer-note ${completes ? "highlight" : ""}`}>
         {completes
-          ? `Completes the ${GROUPS[s.group!].name} set — rent doubles!`
-          : `${p.name} owns ${mine} of ${family.length}${Object.entries(others)
-              .map(([name, n]) => ` · ${name} owns ${n}`)
+          ? `تكمل مجموعة ${GROUPS[s.group!].name} — يتضاعف الإيجار!`
+          : `${p.name} يملك ${mine} من ${family.length}${Object.entries(others)
+              .map(([name, n]) => ` · ${name} يملك ${n}`)
               .join("")}.`}
       </p>
       <div className="stage-wallet">
@@ -155,7 +157,7 @@ function OfferStage({
           <b>{p.name}</b>
           <small>
             {money(p.money)}
-            {!short && <> → {money(p.money - price)} after</>}
+            {!short && <> ← {money(p.money - price)} بعد الشراء</>}
           </small>
         </span>
       </div>
@@ -167,7 +169,7 @@ function OfferStage({
             disabled={short || busy}
             onClick={() => dispatch({ type: "buy" })}
           >
-            <House size={17} /> Buy for {money(price)}
+            <House size={17} /> اشترِ مقابل {money(price)}
           </Button>
           <Button
             variant="outline"
@@ -179,15 +181,15 @@ function OfferStage({
           >
             {settings.auctions ? (
               <>
-                <Gavel size={15} /> Send to auction
+                <Gavel size={15} /> اعرضها في المزاد
               </>
             ) : (
-              "Leave with the bank"
+              "اتركها للبنك"
             )}
           </Button>
           {short && (
             <small className="stage-hint">
-              Not enough cash — {money(price - p.money)} short.
+              لا يكفي رصيدك — ينقصك {money(price - p.money)}.
             </small>
           )}
         </div>
@@ -235,22 +237,22 @@ function AuctionStage({
     <div
       className="stage-panel auction-stage"
       role="dialog"
-      aria-label="Auction"
+      aria-label="المزاد"
     >
       <span className="stage-kicker">
-        <Gavel size={13} /> LIVE AUCTION · LIST PRICE {money(s.price!)}
+        <Gavel size={13} /> مزاد مباشر · السعر الأصلي {money(s.price!)}
       </span>
       <DeedFace space={s} compact />
       <div className="auction-lead">
         {a.leader === null ? (
           <>
-            <span>No bids yet</span>
-            <b>Start at {money(RAISES[0])}</b>
+            <span>لا مزايدات بعد</span>
+            <b>ابدأ من {money(RAISES[0])}</b>
           </>
         ) : (
           <>
             <span>
-              <Crown size={13} /> {g.players[a.leader].name} leads
+              <Crown size={13} /> {g.players[a.leader].name} في الصدارة
             </span>
             <b key={a.bid}>{money(a.bid)}</b>
           </>
@@ -265,9 +267,9 @@ function AuctionStage({
         <span>
           {closing
             ? a.leader === null
-              ? "No bids — staying with the bank…"
-              : `Sold to ${g.players[a.leader].name}!`
-            : `${Math.ceil(left / 1000)}s — every bid resets the clock`}
+              ? "لا مزايدات — تبقى لدى البنك…"
+              : `بيعت إلى ${g.players[a.leader].name}!`
+            : `${Math.ceil(left / 1000)} ث — كل مزايدة تعيد ضبط العدّاد`}
         </span>
       </div>
       <ul className="auction-bidders">
@@ -279,7 +281,7 @@ function AuctionStage({
               <Token id={pl.id} />
               <span>
                 <b>{pl.name}</b>
-                <small>{leading ? "Leading" : money(pl.money)}</small>
+                <small>{leading ? "في الصدارة" : money(pl.money)}</small>
               </span>
               {mine && (
                 <div className="auction-raises">
@@ -294,7 +296,7 @@ function AuctionStage({
                         busy || closing || leading || a.bid + n > pl.money
                       }
                       onClick={() => bid(pl.id, n)}
-                      aria-label={`${pl.name} bids ${money(a.bid + n)}`}
+                      aria-label={`${pl.name} يزايد بـ ${money(a.bid + n)}`}
                     >
                       +{n}
                     </Button>
@@ -307,8 +309,8 @@ function AuctionStage({
       </ul>
       <small className="stage-hint">
         {viewer === undefined
-          ? "Everyone bids at once — tap your row. Highest bid when the clock hits zero wins."
-          : "Tap to outbid. Highest bid when the clock hits zero wins."}
+          ? "الجميع يزايد في الوقت نفسه — اضغط على صفّك. أعلى مزايدة عند انتهاء العدّاد تفوز."
+          : "اضغط للمزايدة. أعلى مزايدة عند انتهاء العدّاد تفوز."}
       </small>
     </div>
   );
@@ -332,7 +334,7 @@ function TradeSide({
         <Token id={player} />
         <span>
           <b>{g.players[player].name}</b>
-          <small>gives · worth ≈ {money(value)}</small>
+          <small>يعطي · بقيمة ≈ {money(value)}</small>
         </span>
       </div>
       <div className="trade-items">
@@ -340,9 +342,7 @@ function TradeSide({
         {spaces.map((id) => (
           <DeedFace key={id} space={BOARD[id]} compact />
         ))}
-        {!cash && !spaces.length && (
-          <span className="trade-empty">Nothing</span>
-        )}
+        {!cash && !spaces.length && <span className="trade-empty">لا شيء</span>}
       </div>
     </div>
   );
@@ -357,12 +357,11 @@ function TradeStage({ game: g, viewer, busy, dispatch }: StageProps) {
     <div
       className="stage-panel trade-stage"
       role="dialog"
-      aria-label="Trade offer"
+      aria-label="عرض تبادل"
     >
       <span className="stage-kicker">
-        <Handshake size={13} /> TRADE OFFER ·{" "}
-        {g.players[t.from].name.toUpperCase()} →{" "}
-        {g.players[t.to].name.toUpperCase()}
+        <Handshake size={13} /> عرض تبادل · {g.players[t.from].name} ←{" "}
+        {g.players[t.to].name}
       </span>
       <div className="trade-columns">
         <TradeSide game={g} player={t.from} cash={t.cashGive} spaces={t.give} />
@@ -376,8 +375,7 @@ function TradeStage({ game: g, viewer, busy, dispatch }: StageProps) {
           {handOff && <small className="stage-hint">{handOff}</small>}
           {!stillValid && (
             <small className="stage-hint stage-warning">
-              Things changed since this offer was made — it can only be declined
-              now.
+              تغيّرت الأوضاع منذ تقديم هذا العرض — يمكن رفضه فقط الآن.
             </small>
           )}
           <Button
@@ -386,7 +384,7 @@ function TradeStage({ game: g, viewer, busy, dispatch }: StageProps) {
             disabled={busy || !stillValid}
             onClick={() => dispatch({ type: "trade-accept" })}
           >
-            <Check size={16} /> Accept deal
+            <Check size={16} /> اقبل الصفقة
           </Button>
           <div className="raise-row">
             <Button
@@ -395,24 +393,22 @@ function TradeStage({ game: g, viewer, busy, dispatch }: StageProps) {
               disabled={busy}
               onClick={() => dispatch({ type: "trade-reject" })}
             >
-              <X size={15} /> Decline
+              <X size={15} /> ارفض
             </Button>
             <Button
               variant="outline"
               className="secondary-button"
               disabled={busy || !stillValid}
               onClick={() => dispatch({ type: "trade-defer" })}
-              title="Keep the offer and carry on playing"
+              title="احتفظ بالعرض وتابع اللعب"
             >
-              <Clock size={15} /> Later
+              <Clock size={15} /> لاحقاً
             </Button>
           </div>
         </div>
       ) : (
         <div className="stage-actions">
-          <p className="stage-waiting">
-            Waiting for {g.players[t.to].name} to respond…
-          </p>
+          <p className="stage-waiting">في انتظار ردّ {g.players[t.to].name}…</p>
           {isSender && (
             <Button
               variant="ghost"
@@ -420,7 +416,7 @@ function TradeStage({ game: g, viewer, busy, dispatch }: StageProps) {
               disabled={busy}
               onClick={() => dispatch({ type: "trade-reject" })}
             >
-              Withdraw offer
+              اسحب العرض
             </Button>
           )}
         </div>
@@ -437,17 +433,16 @@ function CardStage({ game: g, viewer, busy, dispatch }: StageProps) {
     <div
       className={`stage-panel card-stage ${chance ? "chance" : "community"}`}
       role="dialog"
-      aria-label={chance ? "Chance card" : "Community card"}
+      aria-label={chance ? "بطاقة فرصة" : "بطاقة صندوق المجتمع"}
     >
       <span className="stage-kicker">
         {chance ? <Sparkles size={13} /> : <Landmark size={13} />}
-        {chance ? "CHANCE · فرصة" : "COMMUNITY · صندوق المجتمع"}
+        {chance ? "فرصة" : "صندوق المجتمع"}
       </span>
-      <h3 lang="ar">{c.arabicTitle}</h3>
-      <p lang="ar">{c.arabicText}</p>
+      <h3 lang="ar">{c.title}</h3>
+      <p lang="ar">{c.text}</p>
       <small className="stage-hint">
-        <Check size={12} /> Applied automatically for{" "}
-        {g.players[g.current].name}
+        <Check size={12} /> طُبّقت تلقائياً على {g.players[g.current].name}
       </small>
       {canAct && (
         <Button
@@ -456,7 +451,7 @@ function CardStage({ game: g, viewer, busy, dispatch }: StageProps) {
           disabled={busy}
           onClick={() => dispatch({ type: "dismiss-card" })}
         >
-          Got it
+          حسناً
         </Button>
       )}
     </div>
@@ -470,7 +465,7 @@ function justJailed(g: Game) {
     p.jailed &&
     p.jailTurns === 0 &&
     g.phase === "manage" &&
-    g.logs.slice(0, 4).some((l) => l.text === `${p.name} went to jail.`)
+    g.logs.slice(0, 4).some((l) => l.text === wentToJail(p.name))
   );
 }
 
@@ -480,25 +475,25 @@ function JailStage({ game: g, viewer, busy, dispatch }: StageProps) {
     { canAct, waiting } = seat(g, viewer, p.id);
   const reason = g.logs
     .slice(0, 4)
-    .some((l) => l.text.endsWith("arrived in Go to jail."))
-    ? "Landed on Go to jail."
-    : g.logs.slice(0, 4).some((l) => l.text.includes("doubles"))
-      ? "Three doubles in a row."
-      : "A card sent you there.";
+    .some((l) => l.text === arrivedIn(p.name, BOARD[30]))
+    ? "توقفت على خانة «اذهب للسجن»."
+    : g.logs.slice(0, 4).some((l) => l.text.includes("زوج"))
+      ? "ثلاثة أزواج متتالية."
+      : "أرسلتك بطاقة إلى هناك.";
   return (
     <div
       className="stage-panel jail-stage"
       role="dialog"
-      aria-label="Sent to jail"
+      aria-label="إلى السجن"
     >
       <span className="stage-kicker">
-        <ShieldAlert size={13} /> GO TO JAIL · اذهب للسجن
+        <ShieldAlert size={13} /> اذهب للسجن
       </span>
-      <h3>{p.name} is in jail</h3>
-      <p>{reason} No Start salary this time.</p>
+      <h3>{p.name} في السجن</h3>
+      <p>{reason} لا مكافأة بداية هذه المرة.</p>
       <p className="stage-hint">
-        Next turn: roll doubles, pay {money(settings.jailBail)}, or use a free
-        card. After 3 tries you pay and leave.
+        في الدور القادم: ارمِ زوجاً، أو ادفع {money(settings.jailBail)}، أو
+        استخدم بطاقة مجانية. بعد 3 محاولات تدفع وتخرج.
       </p>
       {canAct ? (
         <Button
@@ -507,7 +502,7 @@ function JailStage({ game: g, viewer, busy, dispatch }: StageProps) {
           disabled={busy}
           onClick={() => dispatch({ type: "end" })}
         >
-          End turn
+          أنهِ الدور
         </Button>
       ) : (
         <p className="stage-waiting">{waiting}</p>
@@ -527,11 +522,11 @@ export function SavedOffer({ game: g, viewer, busy, dispatch }: StageProps) {
       <Clock size={15} />
       <span>
         <b>
-          {g.players[t.from].name} → {g.players[t.to].name}
+          {g.players[t.from].name} ← {g.players[t.to].name}
         </b>
         <small>
-          Offer saved for later
-          {tradeValid(g, t) ? "" : " · no longer valid"}
+          عرض مؤجّل لوقت لاحق
+          {tradeValid(g, t) ? "" : " · لم يعد صالحاً"}
         </small>
       </span>
       {isRecipient ? (
@@ -541,7 +536,7 @@ export function SavedOffer({ game: g, viewer, busy, dispatch }: StageProps) {
           disabled={busy || g.phase === "auction"}
           onClick={() => dispatch({ type: "trade-review" })}
         >
-          Review
+          مراجعة
         </Button>
       ) : isSender ? (
         <Button
@@ -550,7 +545,7 @@ export function SavedOffer({ game: g, viewer, busy, dispatch }: StageProps) {
           disabled={busy}
           onClick={() => dispatch({ type: "trade-reject" })}
         >
-          Withdraw
+          اسحب
         </Button>
       ) : null}
     </div>

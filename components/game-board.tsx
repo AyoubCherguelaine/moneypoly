@@ -20,7 +20,7 @@ import {
   Zap,
 } from "lucide-react";
 import { BOARD, COLORS, GROUPS, TOKENS, money, type Space } from "@/lib/board";
-import { type Game } from "@/lib/game";
+import { arrivedIn, type Game } from "@/lib/game";
 
 function side(id: number) {
   if (id % 10 === 0) return "corner";
@@ -60,8 +60,8 @@ function useShownPositions(game: Game, started: boolean) {
       targets.map((to, i) => {
         if (i !== game.current || shown[i] === to) return null;
         const stop = (shown[i] + game.dice[0] + game.dice[1]) % 40;
-        const landed = recent.some((t) =>
-          t.endsWith(`arrived in ${BOARD[stop].name}.`),
+        const landed = recent.includes(
+          arrivedIn(game.players[i].name, BOARD[stop]),
         );
         return stop !== to && landed ? stop : null;
       }),
@@ -177,7 +177,7 @@ export function GameBoard({
   const { shown, settled } = useShownPositions(game, started);
   return (
     <div className="board-frame">
-      <div className="board" aria-label="Manypoly game board">
+      <div className="board" aria-label="لوحة لعبة Moneypoly">
         {BOARD.map((s) => {
           const d = game.deeds[s.id],
             people = game.players.filter(
@@ -195,7 +195,7 @@ export function GameBoard({
                 } as CSSProperties
               }
               onClick={() => onSpace(s)}
-              aria-label={`${s.name}${s.price ? `, ${money(s.price)}` : ""}${d ? `, owned by ${game.players[d.owner].name}` : ""}`}
+              aria-label={`${s.name}${s.price ? `، ${money(s.price)}` : ""}${d ? `، يملكها ${game.players[d.owner].name}` : ""}`}
             >
               <span className="space-card">
                 {s.group && (
@@ -227,22 +227,24 @@ export function GameBoard({
                 <span className="space-ar" lang="ar" dir="rtl">
                   {s.arabic}
                 </span>
-                <span className="space-name">{s.name}</span>
+                {s.type === "city" && (
+                  <span className="space-name">{s.name}</span>
+                )}
                 {s.price && s.type !== "tax" && (
                   <span className="space-price">
                     {s.price}
-                    <small> DH</small>
+                    <small> درهم</small>
                   </span>
                 )}
                 {s.type === "tax" && (
                   <span className="space-price">
                     −{s.price}
-                    <small> DH</small>
+                    <small> درهم</small>
                   </span>
                 )}
                 {s.type === "go" && (
                   <span className="go-arrow">
-                    ← +{(game.settings ?? DEFAULT_SETTINGS).startSalary} DH
+                    ← +{(game.settings ?? DEFAULT_SETTINGS).startSalary} درهم
                   </span>
                 )}
                 {d && (
@@ -273,26 +275,21 @@ export function GameBoard({
         })}
         <div className="board-center">
           <div className="center-top">
-            <span>THE ARAB WORLD EDITION</span>
             <span>نسخة العالم العربي</span>
           </div>
           <div className="center-brand">
             <span className="tiny-stars">✦ &nbsp; ✧ &nbsp; ✦</span>
-            <p className="arabic-brand" lang="ar">
-              ماني بولي
-            </p>
             <h2>
-              manypoly<span>✦</span>
+              Moneypoly<span>✦</span>
             </h2>
-            <p>A journey worth taking.</p>
+            <p>رحلة تستحق أن تُخاض.</p>
           </div>
           <Skyline />
           <div className="deck-row">
             <div className="deck-card chance-deck">
               <Sparkles size={25} />
               <div>
-                <span>فرصة</span>
-                <b>CHANCE</b>
+                <b>فرصة</b>
               </div>
               <span className="deck-number">16</span>
             </div>
@@ -300,19 +297,18 @@ export function GameBoard({
             <div className="deck-card community-deck">
               <Landmark size={25} />
               <div>
-                <span>صندوق المجتمع</span>
-                <b>COMMUNITY</b>
+                <b>صندوق المجتمع</b>
               </div>
               <span className="deck-number">16</span>
             </div>
           </div>
           <div className="center-bottom">
             <span>
-              <Users size={13} /> 2–6 FRIENDS
+              <Users size={13} /> من 2 إلى 6 أصدقاء
             </span>
-            <span>22 CITIES. ENDLESS POSSIBILITIES.</span>
+            <span>22 مدينة. احتمالات لا تنتهي.</span>
             <span>
-              <Coins size={13} /> DIRHAM
+              <Coins size={13} /> الدرهم
             </span>
           </div>
         </div>

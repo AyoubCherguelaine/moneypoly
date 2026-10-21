@@ -22,7 +22,7 @@ export function Dice({ value, rolling }: { value: number; rolling: boolean }) {
   return (
     <span
       className={`die ${rolling ? "rolling" : ""}`}
-      aria-label={`Die: ${value}`}
+      aria-label={`حجر النرد: ${value}`}
     >
       {Array.from({ length: 9 }, (_, i) => (
         <i key={i} className={dots[value].includes(i) ? "dot" : ""} />
@@ -61,7 +61,7 @@ export function Modal({
               variant="ghost"
               size="icon"
               className="icon-button"
-              aria-label="Close dialog"
+              aria-label="إغلاق النافذة"
             >
               <X size={20} />
             </Button>

@@ -339,7 +339,7 @@ describe("card effects", () => {
     assert.equal(n.players[0].position, 33);
     assert.ok(
       n.logs.some(
-        (l) => l.text.includes("drew") && !l.text.includes("A wrong turn"),
+        (l) => l.text.includes("سحب بطاقة") && !l.text.includes("منعطف خاطئ"),
       ),
     );
   });

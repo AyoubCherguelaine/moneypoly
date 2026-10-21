@@ -24,51 +24,42 @@ export const RULE_OPTIONS: {
     | "buildings"
   >;
   label: string;
-  arabic: string;
   description: string;
 }[] = [
   {
     key: "auctions",
-    label: "Property auctions",
-    arabic: "المزاد العلني",
-    description: "Unbought properties go to the highest bidder.",
+    label: "المزاد العلني",
+    description: "العقارات غير المشتراة تذهب لأعلى مزايد.",
   },
   {
     key: "rentInJail",
-    label: "Collect rent in jail",
-    arabic: "قبض الإيجار في السجن",
-    description: "A jailed owner still collects rent from visitors.",
+    label: "قبض الإيجار في السجن",
+    description: "المالك المسجون يواصل قبض الإيجار من الزوار.",
   },
   {
     key: "mortgages",
-    label: "Mortgages",
-    arabic: "الرهن العقاري",
-    description: "Raise cash by mortgaging undeveloped properties.",
+    label: "الرهن العقاري",
+    description: "اجمع المال برهن العقارات غير المبنية.",
   },
   {
     key: "trading",
-    label: "Player trades",
-    arabic: "التبادل بين اللاعبين",
-    description: "Exchange eligible properties and dirhams.",
+    label: "التبادل بين اللاعبين",
+    description: "تبادل العقارات المؤهلة والدراهم.",
   },
   {
     key: "buildings",
-    label: "Houses & hotels",
-    arabic: "بناء المنازل والفنادق",
-    description: "Develop complete color sets to increase rent.",
+    label: "بناء المنازل والفنادق",
+    description: "طوّر مجموعات الألوان الكاملة لرفع الإيجار.",
   },
   {
     key: "taxes",
-    label: "Tax spaces",
-    arabic: "الضرائب",
-    description: "Pay income and luxury taxes when landing on them.",
+    label: "الضرائب",
+    description: "ادفع ضريبة الدخل وضريبة الرفاهية عند التوقف عليهما.",
   },
   {
     key: "freeParkingPot",
-    label: "Taxes to Free Parking",
-    arabic: "تجميع الضرائب في الاستراحة",
-    description:
-      "Tax payments form a pot won by the next player landing on Free Parking.",
+    label: "تجميع الضرائب في الاستراحة",
+    description: "تتجمع الضرائب المدفوعة ويربحها أول من يتوقف على الاستراحة.",
   },
 ];
 export function SessionSettings({
@@ -88,20 +79,20 @@ export function SessionSettings({
     <fieldset className="settings-fieldset" disabled={disabled}>
       <div className="settings-numbers">
         <Label className="field-label">
-          Player limit · عدد اللاعبين
+          عدد اللاعبين
           <NativeSelect
             value={maxPlayers}
             onChange={(e) => onChange(settings, Number(e.target.value))}
           >
             {[2, 3, 4, 5, 6].map((n) => (
               <NativeSelectOption key={n} value={n} disabled={n < minPlayers}>
-                {n} players
+                {n} لاعبين
               </NativeSelectOption>
             ))}
           </NativeSelect>
         </Label>
         <Label className="field-label">
-          Starting money · رصيد البداية
+          رصيد البداية
           <NativeSelect
             value={settings.startingCash}
             onChange={(e) =>
@@ -119,7 +110,7 @@ export function SessionSettings({
           </NativeSelect>
         </Label>
         <Label className="field-label">
-          Pass Start · مكافأة البداية
+          مكافأة البداية
           <NativeSelect
             value={settings.startSalary}
             onChange={(e) =>
@@ -137,7 +128,7 @@ export function SessionSettings({
           </NativeSelect>
         </Label>
         <Label className="field-label">
-          Jail release · الخروج من السجن
+          الخروج من السجن
           <NativeSelect
             value={settings.jailBail}
             onChange={(e) =>
@@ -160,9 +151,6 @@ export function SessionSettings({
           <Label className="rule-toggle" key={rule.key}>
             <span>
               <b>{rule.label}</b>
-              <span lang="ar" dir="rtl">
-                {rule.arabic}
-              </span>
               <small>{rule.description}</small>
             </span>
             <Switch
@@ -194,9 +182,9 @@ export function RulesSummary({ settings }: { settings: GameSettings }) {
   return (
     <div className="rules-summary">
       <div>
-        <b>{money(settings.startingCash)}</b> to start <span>·</span>{" "}
-        <b>{money(settings.startSalary)}</b> passing Start <span>·</span>{" "}
-        <b>{money(settings.jailBail)}</b> jail release
+        <b>{money(settings.startingCash)}</b> للبداية <span>·</span>{" "}
+        <b>{money(settings.startSalary)}</b> عند المرور بالبداية <span>·</span>{" "}
+        <b>{money(settings.jailBail)}</b> للخروج من السجن
       </div>
       {RULE_OPTIONS.map((r) => (
         <span key={r.key} className={settings[r.key] ? "enabled" : "disabled"}>

@@ -77,7 +77,10 @@ export default function SessionRoom({
       } catch (e) {
         if ((e as Error).name !== "AbortError" && mounted.current)
           setConnectionError(
-            e instanceof Error ? e.message : "Connection lost. Reconnecting…",
+            // Only server errors are worded for players; network ones come from the browser.
+            e instanceof Error && e.name === "Error"
+              ? e.message
+              : "انقطع الاتصال. جارٍ إعادة الاتصال…",
           );
       }
     },
@@ -135,9 +138,9 @@ export default function SessionRoom({
         (command.action as { type?: string } | undefined)?.type === "bid";
       if (mounted.current && !bid)
         setError(
-          e instanceof Error
+          e instanceof Error && e.name === "Error"
             ? e.message
-            : "Could not update the session. Try again.",
+            : "تعذّر تحديث الجلسة. حاول مرة أخرى.",
         );
       return false;
     } finally {
@@ -151,7 +154,7 @@ export default function SessionRoom({
       setCopied(true);
       setTimeout(() => setCopied(false), 2500);
     } catch {
-      setError("Copy the session code from the field above.");
+      setError("انسخ رمز الجلسة من الحقل أعلاه.");
     }
   }
   const messages = (
@@ -164,7 +167,7 @@ export default function SessionRoom({
             className="h-auto p-0"
             onClick={() => void refresh()}
           >
-            Retry connection
+            أعد محاولة الاتصال
           </Button>
         </div>
       )}
@@ -174,7 +177,7 @@ export default function SessionRoom({
           <Button
             variant="ghost"
             className="h-auto p-0"
-            aria-label="Dismiss error"
+            aria-label="إخفاء الخطأ"
             onClick={() => setError("")}
           >
             <X size={15} />
@@ -191,10 +194,10 @@ export default function SessionRoom({
             <>
               <div className="session-game-bar">
                 <span>
-                  <i /> SESSION <b>{id}</b>
+                  <i /> الجلسة <b>{id}</b>
                   <span>
                     {" "}
-                    · Playing as{" "}
+                    · تلعب باسم{" "}
                     <strong>
                       {session.members[session.viewer.index].name}
                     </strong>
@@ -207,7 +210,7 @@ export default function SessionRoom({
                     onClick={() => void copy()}
                   >
                     {copied ? <Check size={13} /> : <Copy size={13} />}{" "}
-                    {copied ? "Copied" : "Copy code"}
+                    {copied ? "تم النسخ" : "انسخ الرمز"}
                   </Button>
                   {session.viewer.host && (
                     <Button
@@ -216,10 +219,10 @@ export default function SessionRoom({
                       disabled={busy}
                       onClick={() => setConfirmReset(true)}
                     >
-                      <Settings2 size={13} /> Return everyone to lobby
+                      <Settings2 size={13} /> أعِد الجميع إلى الردهة
                     </Button>
                   )}
-                  <Link href="/">Home</Link>
+                  <Link href="/">الرئيسية</Link>
                 </div>
               </div>
               <div className="session-notices">{messages}</div>
@@ -235,12 +238,12 @@ export default function SessionRoom({
         />
         {confirmReset && (
           <Modal
-            title="Bring everyone back to the lobby?"
+            title="إعادة الجميع إلى الردهة؟"
             onClose={() => setConfirmReset(false)}
           >
             <p className="modal-copy">
-              This ends the current game for every player. Your seats stay
-              reserved, and the host can change the rules before starting again.
+              سينهي هذا اللعبة الحالية لجميع اللاعبين. تبقى مقاعدكم محجوزة،
+              ويمكن للمضيف تغيير القواعد قبل البدء من جديد.
             </p>
             <div className="modal-actions">
               <Button
@@ -248,7 +251,7 @@ export default function SessionRoom({
                 className="secondary-button"
                 onClick={() => setConfirmReset(false)}
               >
-                Keep playing
+                تابع اللعب
               </Button>
               <Button
                 variant="default"
@@ -260,7 +263,7 @@ export default function SessionRoom({
                   })
                 }
               >
-                Back to lobby
+                العودة إلى الردهة
               </Button>
             </div>
           </Modal>
@@ -271,33 +274,33 @@ export default function SessionRoom({
     <div className="app-shell">
       <header className="site-header">
         <SessionBrand />
-        <span className="header-edition">
-          GOOD COMPANY. A LITTLE FRIENDLY RIVALRY.
-        </span>
+        <span className="header-edition">صحبة طيبة. ومنافسة ودّية.</span>
         <span className="local-badge">
-          <i /> SESSION LOBBY
+          <i /> ردهة الجلسة
         </span>
       </header>
       <main>
         <section className="intro">
           <div>
             <div className="eyebrow">
-              <span /> YOUR TABLE IS WAITING
+              <span /> طاولتك بانتظارك
             </div>
             <h1>
-              A place for everyone<span>.</span>
+              مكان يتسع للجميع<span>.</span>
             </h1>
             <p>
               {session?.viewer?.host
-                ? "Invite your friends and choose your rules before the first roll."
-                : "Join with a username. The host will start when everyone is ready."}
+                ? "ادعُ أصدقاءك واختر قواعدك قبل الرمية الأولى."
+                : "انضم باسم مستخدم. سيبدأ المضيف اللعبة حين يجهز الجميع."}
             </p>
           </div>
           <div className="intro-note">
             <span lang="ar" dir="rtl">
               أهلاً بيك في الجلسة
             </span>
-            <p>Session {id}</p>
+            <p>
+              الجلسة <span>{id}</span>
+            </p>
           </div>
         </section>
         {messages}
@@ -305,12 +308,10 @@ export default function SessionRoom({
           <Card className="card-panel session-loading">
             <Users size={30} />
             <h2>
-              {connectionError
-                ? "Let’s find your table."
-                : "Getting your table ready…"}
+              {connectionError ? "لنبحث عن طاولتك." : "جارٍ تجهيز طاولتك…"}
             </h2>
             <Link href="/">
-              Back to Manypoly <ArrowRight size={14} />
+              العودة إلى Moneypoly <ArrowRight size={14} />
             </Link>
           </Card>
         ) : (
@@ -318,18 +319,19 @@ export default function SessionRoom({
             <div className="session-lobby-left">
               <Card className="card-panel invitation-panel">
                 <div className="section-kicker">
-                  <span>THE INVITATION</span>
+                  <span>الدعوة</span>
                   <Link2 size={17} />
                 </div>
-                <h2>Good things are better shared.</h2>
+                <h2>الأشياء الجميلة أجمل حين نتشاركها.</h2>
                 <p>
-                  Send this code to your friends. Each person enters it on the
-                  home page and joins from their own browser.
+                  أرسل هذا الرمز إلى أصدقائك. يُدخله كل واحد في الصفحة الرئيسية
+                  وينضم من متصفحه.
                 </p>
                 <div className="invite-link">
                   <Input
                     className="invite-code"
-                    aria-label="Session code"
+                    aria-label="رمز الجلسة"
+
                     readOnly
                     value={id}
                     onFocus={(e) => e.currentTarget.select()}
@@ -338,26 +340,26 @@ export default function SessionRoom({
                     variant="outline"
                     className="secondary-button"
                     onClick={() => void copy()}
-                    aria-label="Copy session code"
+                    aria-label="انسخ رمز الجلسة"
                   >
                     {copied ? <Check size={17} /> : <Copy size={17} />}
                   </Button>
                 </div>
                 {copied && (
                   <p className="copied-note" role="status">
-                    Code copied.
+                    تم نسخ الرمز.
                   </p>
                 )}
                 <p className="network-note">
-                  Friends need to be on the same Wi-Fi. Keep the game server
-                  running while you play.
+                  يجب أن يكون الأصدقاء على شبكة الواي فاي نفسها. أبقِ خادم
+                  اللعبة يعمل أثناء اللعب.
                 </p>
               </Card>
               <Card className="card-panel lobby-roster">
                 <div className="section-kicker">
-                  <span>AROUND THE TABLE</span>
+                  <span>حول الطاولة</span>
                   <span>
-                    {session.members.length} / {session.maxPlayers} PLAYERS
+                    {session.members.length} / {session.maxPlayers} لاعبين
                   </span>
                 </div>
                 {session.members.map((m, i) => (
@@ -366,10 +368,10 @@ export default function SessionRoom({
                     <div>
                       <b>
                         {m.name}
-                        {m.id === session.viewer?.id && <small>YOU</small>}
+                        {m.id === session.viewer?.id && <small>أنت</small>}
                       </b>
                       <span>
-                        {m.host ? "Host · chooses the rules" : "Ready to play"}
+                        {m.host ? "المضيف · يختار القواعد" : "جاهز للعب"}
                       </span>
                     </div>
                     {m.host ? (
@@ -379,7 +381,7 @@ export default function SessionRoom({
                         variant="ghost"
                         className="icon-button h-auto"
                         disabled={busy}
-                        aria-label={`Remove ${m.name}`}
+                        aria-label={`أزِل ${m.name}`}
                         onClick={() =>
                           void send({ type: "kick", memberId: m.id })
                         }
@@ -396,7 +398,7 @@ export default function SessionRoom({
                     { length: session.maxPlayers - session.members.length },
                     (_, i) => (
                       <div className="empty-seat" key={i}>
-                        <span>＋</span> An open seat for a friend
+                        <span>＋</span> مقعد شاغر لصديق
                       </div>
                     ),
                   )}
@@ -407,9 +409,9 @@ export default function SessionRoom({
                     disabled={busy}
                     onClick={() => void send({ type: "leave" })}
                   >
-                    <LogOut size={13} /> Leave session
+                    <LogOut size={13} /> غادر الجلسة
                     {session.viewer.host && session.members.length > 1
-                      ? " · pass host to the next player"
+                      ? " · تنتقل الاستضافة إلى اللاعب التالي"
                       : ""}
                   </Button>
                 )}
@@ -417,27 +419,24 @@ export default function SessionRoom({
               {!session.viewer && (
                 <Card className="card-panel join-session-panel">
                   <div className="section-kicker">
-                    <span>TAKE YOUR SEAT</span>
+                    <span>خذ مقعدك</span>
                     <Users size={17} />
                   </div>
                   <h2>
                     {session.game
-                      ? "This story has already begun."
+                      ? "هذه الحكاية بدأت بالفعل."
                       : session.members.length >= session.maxPlayers
-                        ? "A full table, for now."
-                        : "Just bring a name."}
+                        ? "الطاولة ممتلئة، حالياً."
+                        : "يكفي أن تحضر اسمك."}
                   </h2>
                   {session.game ? (
                     <p>
-                      Games lock after the first roll. Ask the host to return to
-                      the lobby for a new game. If you already joined, use the
-                      same browser to reconnect to your seat.
+                      تُغلق اللعبة بعد الرمية الأولى. اطلب من المضيف العودة إلى
+                      الردهة لبدء لعبة جديدة. وإن كنت قد انضممت سابقاً، فاستخدم
+                      المتصفح نفسه للعودة إلى مقعدك.
                     </p>
                   ) : session.members.length >= session.maxPlayers ? (
-                    <p>
-                      Ask the host to raise the player limit or make a seat
-                      available.
-                    </p>
+                    <p>اطلب من المضيف رفع عدد اللاعبين أو إتاحة مقعد.</p>
                   ) : (
                     <form
                       onSubmit={(e) => {
@@ -446,7 +445,7 @@ export default function SessionRoom({
                       }}
                     >
                       <Label className="field-label">
-                        Your username · اسم المستخدم
+                        اسم المستخدم
                         <Input
                           minLength={2}
                           maxLength={18}
@@ -454,7 +453,7 @@ export default function SessionRoom({
                           required
                           value={username}
                           onChange={(e) => setUsername(e.target.value)}
-                          placeholder="e.g. Yasmin / ياسمين"
+                          placeholder="مثلاً: ياسمين"
                         />
                       </Label>
                       <Button
@@ -462,12 +461,11 @@ export default function SessionRoom({
                         className="primary-button"
                         disabled={busy}
                       >
-                        {busy ? "Taking your seat…" : "Join the session"}
+                        {busy ? "جارٍ حجز مقعدك…" : "انضم إلى الجلسة"}
                         <ArrowRight size={17} />
                       </Button>
                       <p className="network-note">
-                        Your seat is remembered in this browser. No password or
-                        account.
+                        يُحفظ مقعدك في هذا المتصفح. دون كلمة مرور أو حساب.
                       </p>
                     </form>
                   )}
@@ -476,18 +474,16 @@ export default function SessionRoom({
             </div>
             <Card className="card-panel room-rules">
               <div className="section-kicker">
-                <span>YOUR TABLE. YOUR RULES.</span>
+                <span>طاولتك. قواعدك.</span>
                 <Settings2 size={17} />
               </div>
               <h2>
-                {session.game
-                  ? "The rules for this game."
-                  : "Before the first roll."}
+                {session.game ? "قواعد هذه اللعبة." : "قبل الرمية الأولى."}
               </h2>
               <p>
                 {session.viewer?.host && !session.game
-                  ? "Changes save for everyone. Rules lock when you start."
-                  : "The host chooses these settings. Everyone plays by the same rules."}
+                  ? "تُحفظ التغييرات للجميع، وتُقفل القواعد عند البدء."
+                  : "يختار المضيف هذه الإعدادات، والجميع يلعب بالقواعد نفسها."}
               </p>
               <SessionSettings
                 settings={draftRules?.settings ?? session.settings}
@@ -516,19 +512,19 @@ export default function SessionRoom({
                     }
                     onClick={() => void send({ type: "start" })}
                   >
-                    Start game · {session.members.length}{" "}
-                    {session.members.length === 1 ? "player" : "players"}
+                    ابدأ اللعبة · {session.members.length}{" "}
+                    {session.members.length === 1 ? "لاعب" : "لاعبين"}
                     <ArrowRight size={17} />
                   </Button>
                   <p className="network-note">
                     {session.members.length < 2
-                      ? "Invite at least one friend to begin."
-                      : "Everyone joined will enter the game together."}
+                      ? "ادعُ صديقاً واحداً على الأقل للبدء."
+                      : "سيدخل كل المنضمين اللعبة معاً."}
                   </p>
                 </>
               ) : session.viewer && !session.game ? (
                 <div className="waiting-host">
-                  <span className="live-dot" /> Waiting for the host to start…
+                  <span className="live-dot" /> في انتظار أن يبدأ المضيف…
                 </div>
               ) : (
                 <RulesSummary settings={session.settings} />
@@ -537,13 +533,13 @@ export default function SessionRoom({
           </div>
         )}
         <footer>
-          <span>YOUR SESSION SAVES ON THE SERVER.</span>
+          <span>تُحفظ جلستك على الخادم.</span>
           <div>
             <span>✦</span>
-            <b>The best move is bringing your people.</b>
+            <b>أفضل نقلة أن تجمع أحبابك.</b>
           </div>
           <Link href="/local">
-            One-device mode <ArrowRight size={12} />
+            وضع الجهاز الواحد <ArrowRight size={12} />
           </Link>
         </footer>
       </main>

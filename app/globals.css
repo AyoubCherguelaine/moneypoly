@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;450;500;550;600;650;700&family=Manrope:wght@400;500;600;650;700;750;800&family=Noto+Sans+Arabic:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;450;500;550;600;650;700&family=Manrope:wght@400;500;600;650;700;750;800&family=Noto+Sans+Arabic:wght@400;500;600;700;800&family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap");
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -25,12 +25,16 @@
   --radius: 0.5rem;
   --green: #286653;
   --border: #e5e7dd;
-  --serif: Georgia, "Times New Roman", serif;
-  --sans: "DM Sans", Arial, sans-serif;
+  --serif: Georgia, "Noto Naskh Arabic", "Times New Roman", serif;
+  --sans: "DM Sans", "Noto Sans Arabic", Arial, sans-serif;
   --arabic: "Noto Sans Arabic", Tahoma, sans-serif;
 }
 * {
   box-sizing: border-box;
+}
+/* Letter spacing breaks the joins between Arabic letters. */
+:lang(ar) {
+  letter-spacing: normal !important;
 }
 body {
   margin: 0;

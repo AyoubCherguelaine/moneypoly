@@ -43,7 +43,7 @@ const hash = (token: string) =>
 const secret = () => randomBytes(32).toString("base64url");
 const shortId = () => randomBytes(9).toString("base64url");
 function username(value: unknown): string {
-  if (typeof value !== "string") throw new SessionError("Enter a username.");
+  if (typeof value !== "string") throw new SessionError("أدخل اسم مستخدم.");
   const name = value.normalize("NFKC").trim().replace(/\s+/g, " ");
   if (
     name.length < 2 ||
@@ -51,17 +51,17 @@ function username(value: unknown): string {
     !/^[\p{L}\p{M}\p{N} ._-]+$/u.test(name)
   )
     throw new SessionError(
-      "Use 2–18 letters, numbers, spaces, dots, hyphens, or underscores.",
+      "استخدم من 2 إلى 18 حرفاً أو رقماً أو مسافة أو نقطة أو شرطة.",
     );
   return name;
 }
 function validId(id: string) {
   if (!/^[A-Za-z0-9_-]{12}$/.test(id))
-    throw new SessionError("Session not found.", 404);
+    throw new SessionError("الجلسة غير موجودة.", 404);
 }
 function object(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value))
-    throw new SessionError("Invalid request.");
+    throw new SessionError("طلب غير صالح.");
   return value as Record<string, unknown>;
 }
 function integer(value: unknown, min: number, max: number): number {
@@ -70,7 +70,7 @@ function integer(value: unknown, min: number, max: number): number {
     Number(value) < min ||
     Number(value) > max
   )
-    throw new SessionError("Invalid number.");
+    throw new SessionError("رقم غير صالح.");
   return Number(value);
 }
 function parseAction(
@@ -125,14 +125,14 @@ function parseAction(
       const t = object(a.trade);
       const ids = (v: unknown) => {
         if (!Array.isArray(v) || v.length > 28)
-          throw new SessionError("Invalid properties.");
+          throw new SessionError("عقارات غير صالحة.");
         return v.map((id) => {
           const n = integer(id, 0, 39);
           if (
             !BOARD[n].price ||
             !["city", "rail", "utility"].includes(BOARD[n].type)
           )
-            throw new SessionError("Invalid title deed.");
+            throw new SessionError("سند ملكية غير صالح.");
           return n;
         });
       };
@@ -150,11 +150,11 @@ function parseAction(
         !trade.cashGive &&
         !trade.cashTake
       )
-        throw new SessionError("Offer cash or a property.");
+        throw new SessionError("اعرض مالاً أو عقاراً.");
       return { type: "trade", trade };
     }
     default:
-      throw new SessionError("Unknown game action.");
+      throw new SessionError("إجراء لعب غير معروف.");
   }
 }
 export function actingPlayer(game: Game) {
@@ -194,7 +194,7 @@ export class SessionStore {
       .get(id) as { data: string } | undefined;
     if (!row)
       throw new SessionError(
-        "This session does not exist. Check the link or create a new one.",
+        "هذه الجلسة غير موجودة. تحقق من الرمز أو أنشئ جلسة جديدة.",
         404,
       );
     return JSON.parse(row.data);
@@ -291,11 +291,11 @@ export class SessionStore {
         if (!m) {
           if (s.game)
             throw new SessionError(
-              "This game has already started. Ask the host to start a new game.",
+              "بدأت هذه اللعبة بالفعل. اطلب من المضيف بدء لعبة جديدة.",
               409,
             );
           if (s.members.length >= s.maxPlayers)
-            throw new SessionError("This session is full.", 409);
+            throw new SessionError("هذه الجلسة ممتلئة.", 409);
           const name = username(body.username);
           if (
             s.members.some(
@@ -303,7 +303,7 @@ export class SessionStore {
             )
           )
             throw new SessionError(
-              "That username is already at the table. Choose another one.",
+              "اسم المستخدم هذا موجود على الطاولة. اختر اسماً آخر.",
               409,
             );
           identity = secret();
@@ -312,11 +312,7 @@ export class SessionStore {
           return this.commitUnchanged(s, token);
         }
       } else {
-        if (!m)
-          throw new SessionError(
-            "Join this session before making a move.",
-            401,
-          );
+        if (!m) throw new SessionError("انضم إلى هذه الجلسة قبل أن تلعب.", 401);
         // Bids race each other on purpose; the reducer only accepts a higher
         // bid, so they skip the stale-revision check.
         const live =
@@ -328,38 +324,32 @@ export class SessionStore {
           (!Number.isSafeInteger(body.revision) || body.revision !== s.revision)
         )
           throw new SessionError(
-            "The table changed. Your game has been refreshed; try again.",
+            "تغيّرت الطاولة. تم تحديث لعبتك؛ حاول مرة أخرى.",
             409,
           );
         const host = () => {
           if (m.id !== s.hostId)
-            throw new SessionError("Only the host can do that.", 403);
+            throw new SessionError("المضيف وحده يستطيع فعل ذلك.", 403);
         };
         switch (body.type) {
           case "settings":
             host();
             if (s.game)
-              throw new SessionError(
-                "Rules are locked after the game starts.",
-                409,
-              );
+              throw new SessionError("تُقفل القواعد بعد بدء اللعبة.", 409);
             if (!validSettings(body.settings))
-              throw new SessionError("Invalid game settings.");
+              throw new SessionError("إعدادات لعب غير صالحة.");
             s.maxPlayers = integer(body.maxPlayers, 2, 6);
             if (s.members.length > s.maxPlayers)
               throw new SessionError(
-                "The player limit cannot be lower than the number already joined.",
+                "لا يمكن أن يقل عدد اللاعبين عن عدد المنضمين حالياً.",
               );
             s.settings = { ...body.settings };
             break;
           case "start":
             host();
-            if (s.game)
-              throw new SessionError("The game has already started.", 409);
+            if (s.game) throw new SessionError("بدأت اللعبة بالفعل.", 409);
             if (s.members.length < 2)
-              throw new SessionError(
-                "At least two players must join before starting.",
-              );
+              throw new SessionError("يجب أن ينضم لاعبان على الأقل قبل البدء.");
             s.game = createGame(
               s.members.map((m) => m.name),
               s.settings,
@@ -367,28 +357,25 @@ export class SessionStore {
             break;
           case "reset":
             host();
-            if (!s.game) throw new SessionError("The game has not started.");
+            if (!s.game) throw new SessionError("لم تبدأ اللعبة بعد.");
             s.game = null;
             break;
           case "kick":
             host();
             if (s.game)
-              throw new SessionError(
-                "Players cannot be removed during a game.",
-                409,
-              );
+              throw new SessionError("لا يمكن إزالة لاعبين أثناء اللعب.", 409);
             if (
               typeof body.memberId !== "string" ||
               body.memberId === m.id ||
               !s.members.some((p) => p.id === body.memberId)
             )
-              throw new SessionError("Choose another player to remove.");
+              throw new SessionError("اختر لاعباً آخر لإزالته.");
             s.members = s.members.filter((p) => p.id !== body.memberId);
             break;
           case "leave":
             if (s.game)
               throw new SessionError(
-                "You can reconnect using this browser. Players cannot leave a running game.",
+                "يمكنك العودة باستخدام هذا المتصفح. لا يمكن مغادرة لعبة جارية.",
                 409,
               );
             s.members = s.members.filter((p) => p.id !== m.id);
@@ -402,10 +389,7 @@ export class SessionStore {
             break;
           case "action": {
             if (!s.game)
-              throw new SessionError(
-                "Wait for the host to start the game.",
-                409,
-              );
+              throw new SessionError("انتظر حتى يبدأ المضيف اللعبة.", 409);
             const actor = s.members.indexOf(m),
               a = object(body.action);
             if (
@@ -415,7 +399,7 @@ export class SessionStore {
             ) {
               if (s.game.trade?.to !== actor)
                 throw new SessionError(
-                  "Only the recipient can answer this trade.",
+                  "المستلم وحده يستطيع الرد على هذه الصفقة.",
                   403,
                 );
             } else if (a.type === "trade-reject") {
@@ -424,11 +408,11 @@ export class SessionStore {
                 ![s.game.trade.from, s.game.trade.to].includes(actor)
               )
                 throw new SessionError(
-                  "Only the two traders can decline this offer.",
+                  "طرفا الصفقة وحدهما يستطيعان رفض هذا العرض.",
                   403,
                 );
             } else if (!openToAll(a) && actingPlayer(s.game) !== actor)
-              throw new SessionError("It is not your move.", 403);
+              throw new SessionError("ليس دورك.", 403);
             const action = parseAction(
               body.action,
               actor,
@@ -437,15 +421,12 @@ export class SessionStore {
             );
             const next = gameReducer(s.game, action);
             if (next === s.game)
-              throw new SessionError(
-                "That action is not available right now.",
-                409,
-              );
+              throw new SessionError("هذا الإجراء غير متاح الآن.", 409);
             s.game = next;
             break;
           }
           default:
-            throw new SessionError("Unknown session action.");
+            throw new SessionError("إجراء جلسة غير معروف.");
         }
       }
       s.revision++;
