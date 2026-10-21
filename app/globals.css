@@ -1247,16 +1247,6 @@ button:active:not(:disabled) {
   color: #93a084;
   margin-top: 12px;
 }
-.jail-actions {
-  display: flex;
-  gap: 6px;
-  margin-top: 10px;
-}
-.jail-actions .secondary-button {
-  font-size: 9px;
-  padding: 8px 5px;
-  min-height: 34px;
-}
 .assets-panel {
   padding: 20px;
 }
@@ -1283,6 +1273,15 @@ button:active:not(:disabled) {
   height: 18px;
   border-radius: 2px;
   flex-shrink: 0;
+  background: #7b9d8e;
+}
+.asset-list > button > img {
+  width: 24px;
+  height: 16px;
+  border-radius: 2px;
+  object-fit: cover;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 1px #0000001a;
 }
 .asset-list > button > span {
   font-size: 11px;
@@ -1422,18 +1421,6 @@ button:active:not(:disabled) {
     background-color 0.15s ease,
     transform 0.15s ease,
     box-shadow 0.15s ease;
-}
-.property-tile:before {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  height: 7px;
-  background: var(--group);
-}
-.property-tile:has(.tile-flag):before {
-  display: none;
 }
 .property-tile:not(:has(.tile-flag)) {
   padding-top: 18px;
@@ -1621,21 +1608,20 @@ footer > button {
   overflow: hidden;
   box-shadow: 0 0 0 1px #0000001a;
 }
-.deed-banner-flag {
-  display: block;
-  width: 100%;
-  height: 80px;
-  padding: 12px;
-  object-fit: contain;
-  background: color-mix(in srgb, var(--group) 70%, #1d2b26);
-  filter: drop-shadow(0 2px 3px #0003);
-}
 .deed-banner-body {
-  background: var(--group);
+  background: #698e80;
   text-align: center;
   color: #fffef5;
   padding: 19px;
   text-shadow: 0 1px 2px #0000002e;
+}
+.deed-banner.has-flag .deed-banner-body {
+  background:
+    linear-gradient(#0000003d, #000000a6),
+    var(--flag) center / cover no-repeat,
+    #1d2b26;
+  padding: 26px 19px;
+  text-shadow: 0 1px 4px #00000080;
 }
 .deed-banner-body > small {
   display: block;
@@ -3415,16 +3401,19 @@ footer > a {
   border-radius: 9px;
   overflow: hidden;
   border: 1px solid #0000001a;
-  background: var(--group);
+  background: #698e80;
   color: #fffef5;
   text-align: center;
 }
-.stage-deed-flag {
-  display: block;
-  width: 100%;
-  height: 78px;
-  object-fit: cover;
-  border-bottom: 1px solid #0000001a;
+.stage-deed.has-flag {
+  background:
+    linear-gradient(#0000003d, #000000a6),
+    var(--flag) center / cover no-repeat,
+    #1d2b26;
+}
+.stage-deed.has-flag .stage-deed-body {
+  padding: 26px 12px;
+  text-shadow: 0 1px 4px #00000080;
 }
 .stage-deed-icon {
   display: flex;
@@ -3456,11 +3445,11 @@ footer > a {
   font-weight: 400;
   line-height: 1.1;
 }
-.stage-deed.compact .stage-deed-flag {
-  height: 44px;
-}
 .stage-deed.compact .stage-deed-body {
   padding: 6px 8px 9px;
+}
+.stage-deed.compact.has-flag .stage-deed-body {
+  padding: 14px 8px;
 }
 .stage-deed.compact .stage-deed-body > b {
   font-size: 17px;
@@ -3741,7 +3730,10 @@ footer > a {
 @media (min-width: 961px) {
   .app-shell.app-mode {
     --sidebar: clamp(300px, 26vw, 380px);
-    --board: min(calc(100dvh - 56px - 24px), calc(100vw - 48px - var(--sidebar) - 20px));
+    --board: min(
+      calc(100dvh - 56px - 24px),
+      calc(100vw - 48px - var(--sidebar) - 20px)
+    );
     max-width: none;
     height: 100dvh;
     padding: 0 24px;
@@ -4058,7 +4050,6 @@ footer > a {
     transform 0.12s ease,
     box-shadow 0.12s ease;
 }
-.deal-deed > img,
 .deal-deed > i {
   display: flex;
   align-items: center;
@@ -4067,7 +4058,7 @@ footer > a {
   margin: 0 -8px 5px;
   height: 22px;
   object-fit: cover;
-  background: color-mix(in srgb, var(--group) 30%, #fff);
+  background: #e3ebe4;
   color: #5e7452;
 }
 .deal-deed b {
@@ -4082,6 +4073,32 @@ footer > a {
   font-size: 10px;
   color: #939c88;
 }
+.deal-deed b[lang="ar"] {
+  font-family: var(--arabic);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+.deal-deed em {
+  font-style: normal;
+  font-size: 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+.deal-deed.has-flag {
+  padding-top: 8px;
+  color: #fffef5;
+  text-shadow: 0 1px 3px #00000099;
+  background:
+    linear-gradient(#00000033, #000000b3),
+    var(--flag) center / cover no-repeat,
+    #1d2b26;
+}
+.deal-deed.has-flag small {
+  color: #fffef5d9;
+}
 .deal-deed:hover:not(:disabled) {
   transform: translateY(-1px);
   box-shadow: 0 6px 12px -8px #33472f66;
@@ -4090,6 +4107,12 @@ footer > a {
   border-color: var(--green);
   box-shadow: 0 0 0 2px var(--green);
   background: #f2f7ee;
+}
+.deal-deed.on.has-flag {
+  background:
+    linear-gradient(#00000033, #000000b3),
+    var(--flag) center / cover no-repeat,
+    #1d2b26;
 }
 .deal-check {
   position: absolute;
@@ -4260,9 +4283,6 @@ footer > a {
   display: flex;
   flex-direction: column;
   min-width: 0;
-}
-.deed-layout .deed-banner-flag {
-  height: 64px;
 }
 .deed-layout .deed-banner-body {
   padding: 14px;

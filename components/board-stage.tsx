@@ -5,11 +5,13 @@ import {
   ArrowLeftRight,
   Check,
   Crown,
+  Dices,
   Gavel,
   Handshake,
   House,
   Landmark,
   Clock,
+  KeyRound,
   ShieldAlert,
   Sparkles,
   X,
@@ -38,6 +40,8 @@ type StageProps = {
   /** Server clock minus local clock (online games), in ms. */
   clockOffset?: number;
   dispatch: (a: Action) => void;
+  /** Rolls with the dice animation; falls back to nothing when absent. */
+  onRoll?: () => void;
 };
 
 /** Picks what deserves the centre of the board right now, if anything. */
@@ -49,6 +53,8 @@ export function BoardStage(props: StageProps) {
   if (g.phase === "buy" && !g.debt) return <OfferStage {...props} />;
   if (g.card) return <CardStage {...props} />;
   if (justJailed(g)) return <JailStage {...props} />;
+  if (g.phase === "roll" && g.players[g.current].jailed)
+    return <JailChoiceStage {...props} />;
   return null;
 }
 
@@ -56,13 +62,14 @@ function DeedFace({ space: s, compact }: { space: Space; compact?: boolean }) {
   const group = s.group ? GROUPS[s.group] : null;
   return (
     <div
-      className={`stage-deed ${compact ? "compact" : ""}`}
-      style={{ "--group": group?.color ?? "#698e80" } as CSSProperties}
+      className={`stage-deed ${compact ? "compact" : ""} ${group ? "has-flag" : ""}`}
+      style={
+        group
+          ? ({ "--flag": `url("${group.flag}")` } as CSSProperties)
+          : undefined
+      }
     >
-      {group ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img className="stage-deed-flag" src={group.flag} alt={group.name} />
-      ) : (
+      {!group && (
         <span className="stage-deed-icon">
           <SpaceIcon type={s.type} size={compact ? 22 : 30} />
         </span>
@@ -504,6 +511,70 @@ function JailStage({ game: g, viewer, busy, dispatch }: StageProps) {
         >
           أنهِ الدور
         </Button>
+      ) : (
+        <p className="stage-waiting">{waiting}</p>
+      )}
+    </div>
+  );
+}
+
+/** A jailed player's turn: pay, roll for a double, or play a free card. */
+function JailChoiceStage({
+  game: g,
+  viewer,
+  busy,
+  dispatch,
+  onRoll,
+}: StageProps) {
+  const p = g.players[g.current],
+    settings = g.settings ?? DEFAULT_SETTINGS,
+    { canAct, waiting, handOff } = seat(g, viewer, p.id),
+    lastTry = p.jailTurns >= 2;
+  return (
+    <div
+      className="stage-panel jail-stage"
+      role="dialog"
+      aria-label="الخروج من السجن"
+    >
+      <span className="stage-kicker">
+        <ShieldAlert size={13} /> في السجن · المحاولة {p.jailTurns + 1} / 3
+      </span>
+      <h3>كيف سيخرج {p.name}؟</h3>
+      <p>
+        {lastTry
+          ? `المحاولة الأخيرة: إن لم ترمِ زوجاً تدفع ${money(settings.jailBail)} وتتحرك.`
+          : "اختر طريقة الخروج، أو جرّب حظك برمي زوج."}
+      </p>
+      {canAct ? (
+        <div className="stage-actions">
+          <Button
+            variant="default"
+            className="primary-button"
+            disabled={busy || !onRoll}
+            onClick={onRoll}
+          >
+            <Dices size={17} /> ارمِ لزوج
+          </Button>
+          <Button
+            variant="outline"
+            className="secondary-button"
+            disabled={busy || p.money < settings.jailBail}
+            onClick={() => dispatch({ type: "bail" })}
+          >
+            <Landmark size={15} /> ادفع {money(settings.jailBail)} واخرج
+          </Button>
+          {!!p.escape.length && (
+            <Button
+              variant="outline"
+              className="secondary-button"
+              disabled={busy}
+              onClick={() => dispatch({ type: "escape" })}
+            >
+              <KeyRound size={15} /> استخدم بطاقة الخروج ({p.escape.length})
+            </Button>
+          )}
+          {handOff && <small className="stage-hint">{handOff}</small>}
+        </div>
       ) : (
         <p className="stage-waiting">{waiting}</p>
       )}

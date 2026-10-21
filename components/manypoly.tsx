@@ -5,13 +5,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
-import {
-  useEffect,
-  useRef,
-  useState,
-  type CSSProperties,
-  type ReactNode,
-} from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -329,6 +323,7 @@ export default function Manypoly({
                         busy={!!remote?.busy || rolling}
                         clockOffset={remote?.clockOffset ?? 0}
                         dispatch={dispatch}
+                        onRoll={roll}
                       />
                     )
                   }
@@ -354,13 +349,6 @@ export default function Manypoly({
                             <button
                               className="property-tile"
                               key={id}
-                              style={
-                                {
-                                  "--group": BOARD[+id].group
-                                    ? GROUPS[BOARD[+id].group!].color
-                                    : "#648e80",
-                                } as CSSProperties
-                              }
                               onClick={() => setSelected(BOARD[+id])}
                             >
                               {BOARD[+id].group && (
@@ -593,32 +581,10 @@ export default function Manypoly({
                                 <span>↵</span>
                               </Button>
                               {p.jailed && (
-                                <div className="jail-actions">
-                                  <Button
-                                    variant="outline"
-                                    className="secondary-button"
-                                    disabled={
-                                      rolling ||
-                                      p.money < settings.jailBail ||
-                                      tradeOpen(g)
-                                    }
-                                    onClick={() => dispatch({ type: "bail" })}
-                                  >
-                                    ادفع {money(settings.jailBail)}
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    className="secondary-button"
-                                    disabled={
-                                      rolling ||
-                                      !p.escape.length ||
-                                      tradeOpen(g)
-                                    }
-                                    onClick={() => dispatch({ type: "escape" })}
-                                  >
-                                    استخدم البطاقة المجانية ({p.escape.length})
-                                  </Button>
-                                </div>
+                                <p className="stage-pointer">
+                                  <MapPin size={14} /> في السجن: اختر على اللوحة
+                                  أن تدفع أو ترمي أو تستخدم بطاقة.
+                                </p>
                               )}
                             </>
                           ) : g.phase === "buy" ? (
@@ -714,13 +680,12 @@ export default function Manypoly({
                           key={s.id}
                           onClick={() => setSelected(s)}
                         >
-                          <i
-                            style={{
-                              background: s.group
-                                ? GROUPS[s.group].color
-                                : "#7b9d8e",
-                            }}
-                          />
+                          {s.group ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={GROUPS[s.group].flag} alt="" />
+                          ) : (
+                            <i />
+                          )}
                           <span>{s.name}</span>
                           <small>
                             {g.deeds[s.id].mortgaged

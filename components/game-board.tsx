@@ -190,7 +190,6 @@ export function GameBoard({
               style={
                 {
                   ...position(s.id),
-                  "--group": s.group ? GROUPS[s.group].color : "transparent",
                   ...(d && { "--owner": COLORS[d.owner] }),
                 } as CSSProperties
               }

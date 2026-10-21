@@ -1,6 +1,6 @@
 "use client";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { useState, type CSSProperties } from "react";
+import { useState } from "react";
 import { Landmark, Sparkles } from "lucide-react";
 import { DEFAULT_SETTINGS, type GameSettings } from "@/lib/settings";
 import {
@@ -58,11 +58,6 @@ export function CardLibrary({
               <button
                 key={s.id}
                 className="property-tile"
-                style={
-                  {
-                    "--group": s.group ? GROUPS[s.group].color : "#698e80",
-                  } as CSSProperties
-                }
                 onClick={() => onSpace(s)}
               >
                 {s.group && (

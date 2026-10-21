@@ -29,22 +29,15 @@ export type Space = {
   build?: number;
   icon?: string;
 };
-export const GROUPS: Record<
-  Group,
-  { name: string; color: string; flag: string }
-> = {
-  levant: { name: "بلاد الشام", color: "#986c56", flag: "/flags/sy.svg?v=2" },
-  jordan: { name: "الأردن وفلسطين", color: "#83c8d3", flag: "/flags/jo.svg" },
-  egypt: { name: "مصر ولبنان", color: "#c577a6", flag: "/flags/eg.svg" },
-  kuwait: { name: "الكويت", color: "#ec9b4b", flag: "/flags/kw.svg" },
-  algeria: { name: "الجزائر", color: "#e4c355", flag: "/flags/dz.svg" },
-  oman: { name: "عُمان", color: "#df7770", flag: "/flags/om.svg" },
-  arabia: {
-    name: "شبه الجزيرة العربية",
-    color: "#73a88a",
-    flag: "/flags/sa.svg",
-  },
-  qatar: { name: "قطر", color: "#6f8fb9", flag: "/flags/qa.svg" },
+export const GROUPS: Record<Group, { name: string; flag: string }> = {
+  levant: { name: "بلاد الشام", flag: "/flags/sy.svg?v=2" },
+  jordan: { name: "الأردن وفلسطين", flag: "/flags/jo.svg" },
+  egypt: { name: "مصر ولبنان", flag: "/flags/eg.svg" },
+  kuwait: { name: "الكويت", flag: "/flags/kw.svg" },
+  algeria: { name: "الجزائر", flag: "/flags/dz.svg" },
+  oman: { name: "عُمان", flag: "/flags/om.svg" },
+  arabia: { name: "شبه الجزيرة العربية", flag: "/flags/sa.svg" },
+  qatar: { name: "قطر", flag: "/flags/qa.svg" },
 };
 const city = (
   id: number,

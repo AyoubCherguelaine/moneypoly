@@ -60,21 +60,15 @@ export function PropertyDetail({
     <div className="deed-layout">
       <div className="deed-col">
         <div
-          className="deed-banner"
+          className={`deed-banner ${s.group ? "has-flag" : ""}`}
           style={
-            {
-              "--group": s.group ? GROUPS[s.group].color : "#698e80",
-            } as CSSProperties
+            s.group
+              ? ({
+                  "--flag": `url("${GROUPS[s.group].flag}")`,
+                } as CSSProperties)
+              : undefined
           }
         >
-          {s.group && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              className="deed-banner-flag"
-              src={GROUPS[s.group].flag}
-              alt={GROUPS[s.group].name}
-            />
-          )}
           <div className="deed-banner-body">
             <span>سند الملكية</span>
             <h3 lang="ar">{s.arabic}</h3>

@@ -90,30 +90,30 @@ function DealSide({
             <button
               type="button"
               key={id}
-              className={`deal-deed ${on ? "on" : ""}`}
+              className={`deal-deed ${on ? "on" : ""} ${s.group ? "has-flag" : ""}`}
+              style={
+                s.group
+                  ? ({
+                      "--flag": `url("${GROUPS[s.group].flag}")`,
+                    } as CSSProperties)
+                  : undefined
+              }
               disabled={!!blocked}
               aria-pressed={on}
               title={blocked ?? `${s.name} · ${money(s.price!)}`}
-              style={
-                {
-                  "--group": s.group ? GROUPS[s.group].color : "#698e80",
-                } as CSSProperties
-              }
               onClick={() =>
                 setSelected(
                   on ? selected.filter((n) => n !== id) : [...selected, id],
                 )
               }
             >
-              {s.group ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={GROUPS[s.group].flag} alt="" />
-              ) : (
+              {!s.group && (
                 <i>
                   <SpaceIcon type={s.type} size={16} />
                 </i>
               )}
-              <b>{s.type === "city" ? s.name : s.arabic}</b>
+              <b lang="ar">{s.arabic}</b>
+              {s.type === "city" && <em>{s.name}</em>}
               <small>{blocked ?? money(s.price!)}</small>
               {on && (
                 <span className="deal-check">
